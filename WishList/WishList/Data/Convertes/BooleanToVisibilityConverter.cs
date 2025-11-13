@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
-namespace WishList.Date.Convertes
+namespace WishList.Data.Convertes
 {
     public class BooleanToVisibilityConverter : IValueConverter
     {

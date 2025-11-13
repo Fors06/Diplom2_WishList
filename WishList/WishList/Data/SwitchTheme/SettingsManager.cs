@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace WishList.Date.SwitchTheme
+namespace WishList.Data.SwitchTheme
 {
     public static class SettingsManager
     {

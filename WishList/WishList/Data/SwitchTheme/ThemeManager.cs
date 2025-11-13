@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace WishList.Date.SwitchTheme
+namespace WishList.Data.SwitchTheme
 {
     public static class ThemeManager
     {

@@ -2,13 +2,13 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:WishList"
-             xmlns:convertes="clr-namespace:WishList.Date.Convertes"
+             xmlns:convertes="clr-namespace:WishList.Data.Convertes"
              StartupUri="Views\MainWindow.xaml">
     <Application.Resources>
         <!-- Подключаем светлую тему по умолчанию -->
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Date/SwitchTheme/LightTheme.xaml"/>
+                <ResourceDictionary Source="/Data/SwitchTheme/LightTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <convertes:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>

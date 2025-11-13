@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace WishList
+namespace WishList.ViewModel
 {
     public class RelayCommand : ICommand
     {

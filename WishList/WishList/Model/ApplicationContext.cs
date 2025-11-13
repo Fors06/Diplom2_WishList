@@ -1,23 +1,32 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WishList.Model.Entity;
+using Task = WishList.Model.Entity.Task;
 
 namespace WishList
 {
     public class ApplicationContext : DbContext
     {
-        public DbSet<User> Users { get; set; }
+        public DbSet<Employee> Employees { get; set; }
         public DbSet<Client> Clients { get; set; }
+        public DbSet<Task> Tasks { get; set; }
+        public DbSet<TaskCategory> TaskCategories { get; set; }
+        public DbSet<TaskProgress> TaskProgresses { get; set; }
+        public DbSet<WorkPlan> WorkPlans { get; set; }
+
+
+        public DbSet<EmployeeRole> EmployeeRoles { get; set; }
+        public DbSet<TaskStatuss> TaskStatuses { get; set; }
+        public DbSet<TaskPriority> TaskPriorities { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
 
             if (!optionsBuilder.IsConfigured)
             {
-                var connectionString = "Server=forus.tw1.ru;Port=3306;Database=cl76980_wishlist;Uid=cl76980_wishlist;Pwd=12345678900987654321;CharSet=utf8mb4;SslMode=None;";
+                var connectionString = @"Server=(localdb)\MSSQLLocalDB;Database=SupportManager;Trusted_Connection=True;";
 
-                optionsBuilder.UseMySql(
+                optionsBuilder.UseSqlServer(
              connectionString,
-             new MySqlServerVersion(new Version(8, 0, 43)),
              options => options.EnableRetryOnFailure(
                  maxRetryCount: 5,
                  maxRetryDelay: TimeSpan.FromSeconds(30),

@@ -8,22 +8,35 @@ namespace WishList.Model.Entity
     public class Client
     {
         [Key]
-        [Column("ClientId")]
-        public int ClientId { get; set; }
+        [Column("Id")]
+        public int Id { get; set; }
 
         [Column("CompanyName")]
-        public string CompanyName { get; set; }
+        [Required]
+        [MaxLength(100)]
+        public string CompanyName { get; set; } = string.Empty;
 
         [Column("ContactPerson")]
-        public string ContactPerson { get; set; }
+        [MaxLength(100)]
+        public string ContactPerson { get; set; } = string.Empty;
 
         [Column("Email")]
-        public string Email { get; set; }
+        [MaxLength(100)]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
 
         [Column("Phone")]
-        public string Phone { get; set; }
+        [MaxLength(20)]
+        public string Phone { get; set; } = string.Empty;
+
+        [Column("Address")]
+        [MaxLength(255)]
+        public string Address { get; set; } = string.Empty;
 
         [Column("CreatedDate")]
-        public DateTime CreatedDate { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        // Навигационные свойства
+        public virtual ICollection<Task> Tasks { get; set; }
     }
 }

@@ -2,7 +2,7 @@
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 
-namespace WishList.Date.Convertes
+namespace WishList.Data.Convertes
 {
     public class ByteArrayToImageConverter : IValueConverter
     {

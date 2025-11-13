@@ -1,6 +1,6 @@
 ﻿
 
-namespace WishList.Date.SwitchTheme
+namespace WishList.Data.SwitchTheme
 {
     public class AppSettings
     {

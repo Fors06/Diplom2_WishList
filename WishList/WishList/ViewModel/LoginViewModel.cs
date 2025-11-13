@@ -89,17 +89,25 @@ namespace WishList.ViewModel
 
                 using (var dbContext = new ApplicationContext())
                 {
-                    User user = await dbContext.Users
-                .FirstOrDefaultAsync(u =>
-                    u.Username == Username && u.Password == Password);
+                    // Ищем пользователя по email
+                    Employee user = await dbContext.Employees
+                        .FirstOrDefaultAsync(u => u.Email == Username);
 
                     if (user != null)
                     {
-
-                        if (PasswordHasher.VerifyPassword(Password, user.Password))
+                        // Проверяем пароль с помощью PasswordHasher
+                        if (PasswordHasher.VerifyPassword(Password, user.PasswordHash))
                         {
-                            // Определяем роль и открываем соответствующее окно
-                             OpenAdminWindow(obj);
+                            // Проверяем активность пользователя
+                            if (user.IsActive)
+                            {
+                                // Определяем роль и открываем соответствующее окно
+                                await DetermineUserRoleAndOpenWindow(user, obj);
+                            }
+                            else
+                            {
+                                ErrorMessage = "Учетная запись не активна.";
+                            }
                         }
                         else
                         {
@@ -108,17 +116,48 @@ namespace WishList.ViewModel
                     }
                     else
                     {
-                        ErrorMessage = "Неверные данные для входа.";
+                        ErrorMessage = "Пользователь не найден.";
                     }
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 ErrorMessage = $"Ошибка подключения: {ex.Message}";
             }
             finally
             {
                 IsLoading = false;
+            }
+        }
+
+        private async System.Threading.Tasks.Task DetermineUserRoleAndOpenWindow(Employee user, object obj)
+        {
+            using (var dbContext = new ApplicationContext())
+            {
+                // Предполагаемая структура таблицы ролей
+                var userRole = await dbContext.EmployeeRoles
+                    .Include(ur => ur.Name)
+                    .FirstOrDefaultAsync(ur => ur.Id == user.Id);
+
+                if (userRole != null)
+                {
+                    switch (userRole.Name.ToLower())
+                    {
+                        case "Администратор":
+                            OpenAdminWindow(obj);
+                            break;
+                        case "Менеджер":
+                            OpenManagerWindow(obj);
+                            break;
+                        default:
+                            ErrorMessage = "Недостаточно прав для доступа.";
+                            break;
+                    }
+                }
+                else
+                {
+                    ErrorMessage = "Роль пользователя не определена.";
+                }
             }
         }
 
@@ -152,131 +191,3 @@ namespace WishList.ViewModel
         }
     }
 }
-
-//using System.Windows;
-//using System.Windows.Input;
-//using Диплом2_ITкомпания.Model.Entity;
-//using Диплом2_ITкомпания.Models.Constants;
-//using Диплом2_ITкомпания.Services;
-//using Диплом2_ITкомпания.View.AdminView;
-//using Диплом2_ITкомпания.View.ManagerView;
-
-//namespace Диплом2_ITкомпания.ViewModels
-//{
-//    public class LoginViewModel : ViewModelBase
-//    {
-//        private string _username;
-//        private string _password;
-//        private string _errorMessage;
-//        private bool _isLoading;
-//        private readonly AuthService _authService;
-
-//        public LoginViewModel()
-//        {
-//            _authService = new AuthService();
-//            LoginCommand = new RelayCommand(async (obj) => await LoginExecuteAsync(obj), CanExecuteLogin);
-//        }
-
-//        public string Username
-//        {
-//            get => _username;
-//            set => SetProperty(ref _username, value);
-//        }
-
-//        public string Password
-//        {
-//            get => _password;
-//            set => SetProperty(ref _password, value);
-//        }
-
-//        public string ErrorMessage
-//        {
-//            get => _errorMessage;
-//            set => SetProperty(ref _errorMessage, value);
-//        }
-
-//        public bool IsLoading
-//        {
-//            get => _isLoading;
-//            set => SetProperty(ref _isLoading, value);
-//        }
-
-//        public ICommand LoginCommand { get; }
-
-//        private bool CanExecuteLogin(object parameter)
-//        {
-//            return !string.IsNullOrEmpty(Username) &&
-//                   !string.IsNullOrEmpty(Password) &&
-//                   !IsLoading;
-//        }
-
-//        private async Task LoginExecuteAsync(object obj)
-//        {
-//            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-//            {
-//                ErrorMessage = "Пожалуйста, введите имя пользователя и пароль.";
-//                return;
-//            }
-
-//            try
-//            {
-//                IsLoading = true;
-//                ErrorMessage = string.Empty;
-
-//                var user = await _authService.AuthenticateAsync(Username, Password);
-
-//                if (user != null)
-//                {
-//                    await OpenWindowBasedOnRole(user);
-//                }
-//                else
-//                {
-//                    ErrorMessage = "Неверное имя пользователя или пароль.";
-//                }
-//            }
-//            catch (System.Exception ex)
-//            {
-//                ErrorMessage = $"Ошибка авторизации: {ex.Message}";
-//            }
-//            finally
-//            {
-//                IsLoading = false;
-//            }
-//        }
-
-//        private async Task OpenWindowBasedOnRole(User user)
-//        {
-//            await Application.Current.Dispatcher.InvokeAsync(() =>
-//            {
-//                Window newWindow = null;
-
-//                switch (user.Role.RoleName)
-//                {
-//                    case "Admin":
-//                        newWindow = new AdminWindow();
-//                        newWindow.DataContext = new AdminViewModel(user);
-//                        break;
-
-//                    case "Manager":
-//                        newWindow = new ManagerWindow();
-//                        newWindow.DataContext = new ManagerViewModel(user);
-//                        break;
-
-//                    default:
-//                        ErrorMessage = "Неизвестная роль пользователя.";
-//                        return;
-//                }
-
-//                // Сохраняем текущее окно
-//                var currentWindow = Application.Current.MainWindow;
-
-//                // Устанавливаем новое окно как главное
-//                Application.Current.MainWindow = newWindow;
-//                newWindow.Show();
-
-//                // Закрываем старое окно
-//                currentWindow?.Close();
-//            });
-//        }
-//    }
-//}

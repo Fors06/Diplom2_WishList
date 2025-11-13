@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Windows.Data;
 
-namespace WishList.Date.Convertes
+namespace WishList.Data.Convertes
 {
     [ValueConversion(typeof(bool), typeof(bool))]
     public sealed class InverseBooleanConverter : IValueConverter
