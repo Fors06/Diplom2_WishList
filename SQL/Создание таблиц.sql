@@ -1,5 +1,3 @@
-
-
 USE SupportManager;
 GO
 
@@ -33,7 +31,7 @@ CREATE TABLE Employees (
     RoleId INT NOT NULL,
     IsActive BIT NOT NULL DEFAULT 1,
     CreatedDate DATETIME2 NOT NULL DEFAULT GETDATE(),
-    FOREIGN KEY (RoleId) REFERENCES EmployeeRoles(Id)
+    FOREIGN KEY (RoleId) REFERENCES EmployeeRoles(Id) ON DELETE CASCADE
 );
 
 -- Таблица клиентов (без изменений)
@@ -54,6 +52,25 @@ CREATE TABLE TaskCategories (
     Description NVARCHAR(255)
 );
 
+-- Таблица комментариев/прогресса (без изменений)
+CREATE TABLE TaskProgress (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    Description NVARCHAR(MAX) NOT NULL,
+    ProgressPercentage INT NOT NULL DEFAULT 0 CHECK (ProgressPercentage >= 0 AND ProgressPercentage <= 100),
+    HoursSpent DECIMAL(4,2) NULL,
+    CreatedDate DATETIME2 NOT NULL DEFAULT GETDATE()
+);
+
+-- Таблица планов работ (без изменений)
+CREATE TABLE WorkPlans (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    PlanDescription NVARCHAR(MAX) NOT NULL,
+    TestSteps NVARCHAR(MAX),
+    EstimatedHours DECIMAL(5,2),
+    CreatedDate DATETIME2 NOT NULL DEFAULT GETDATE()
+);
+
+
 -- Таблица задач (улучшенная)
 CREATE TABLE Tasks (
     Id INT PRIMARY KEY IDENTITY(1,1),
@@ -65,47 +82,23 @@ CREATE TABLE Tasks (
     ProgrammerId INT NULL,
     StatusId INT NOT NULL DEFAULT 0,
     PriorityId INT NOT NULL DEFAULT 2,
+    TaskProgressId INT NOT NULL,
+    WorkPlansId INT NOT NULL,
     CreatedDate DATETIME2 NOT NULL DEFAULT GETDATE(),
     DueDate DATETIME2 NULL,
     CompletedDate DATETIME2 NULL,
     EstimatedHours DECIMAL(5,2) NULL,
     ActualHours DECIMAL(5,2) NULL,
-    FOREIGN KEY (ClientId) REFERENCES Clients(Id),
-    FOREIGN KEY (CategoryId) REFERENCES TaskCategories(Id),
-    FOREIGN KEY (ManagerId) REFERENCES Employees(Id),
-    FOREIGN KEY (ProgrammerId) REFERENCES Employees(Id),
-    FOREIGN KEY (StatusId) REFERENCES TaskStatuses(Id),
-    FOREIGN KEY (PriorityId) REFERENCES TaskPriorities(Id)
+    FOREIGN KEY (ClientId) REFERENCES Clients(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (CategoryId) REFERENCES TaskCategories(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (ManagerId) REFERENCES Employees(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (ProgrammerId) REFERENCES Employees(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (StatusId) REFERENCES TaskStatuses(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (PriorityId) REFERENCES TaskPriorities(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (TaskProgressId) REFERENCES TaskProgress(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (WorkPlansId) REFERENCES WorkPlans(Id) ON DELETE NO ACTION
 );
 
--- Таблица комментариев/прогресса (без изменений)
-CREATE TABLE TaskProgress (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    TaskId INT NOT NULL,
-    EmployeeId INT NOT NULL,
-    Description NVARCHAR(MAX) NOT NULL,
-    ProgressPercentage INT NOT NULL DEFAULT 0 CHECK (ProgressPercentage >= 0 AND ProgressPercentage <= 100),
-    HoursSpent DECIMAL(4,2) NULL,
-    CreatedDate DATETIME2 NOT NULL DEFAULT GETDATE(),
-    FOREIGN KEY (TaskId) REFERENCES Tasks(Id),
-    FOREIGN KEY (EmployeeId) REFERENCES Employees(Id)
-);
 
--- Таблица планов работ (без изменений)
-CREATE TABLE WorkPlans (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    TaskId INT NOT NULL,
-    PlanDescription NVARCHAR(MAX) NOT NULL,
-    TestSteps NVARCHAR(MAX),
-    EstimatedHours DECIMAL(5,2),
-    CreatedDate DATETIME2 NOT NULL DEFAULT GETDATE(),
-    FOREIGN KEY (TaskId) REFERENCES Tasks(Id)
-);
 
--- Индексы для улучшения производительности
-CREATE INDEX IX_Tasks_StatusId ON Tasks(StatusId);
-CREATE INDEX IX_Tasks_PriorityId ON Tasks(PriorityId);
-CREATE INDEX IX_Tasks_ProgrammerId ON Tasks(ProgrammerId);
-CREATE INDEX IX_Tasks_DueDate ON Tasks(DueDate);
-CREATE INDEX IX_TaskProgress_TaskId ON TaskProgress(TaskId);
-GO
+
