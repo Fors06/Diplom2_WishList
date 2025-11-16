@@ -28,12 +28,12 @@ namespace WishList.Model.Entity
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         // Вычисляемые свойства
-        [NotMapped]
-        public string FormattedCreatedDate => CreatedDate.ToString("dd.MM.yyyy HH:mm");
+        //[NotMapped]
+        //public string FormattedCreatedDate => CreatedDate.ToString("dd.MM.yyyy HH:mm");
 
-        [NotMapped]
-        public string ShortDescription => Description.Length > 100
-            ? Description.Substring(0, 100) + "..."
-            : Description;
+        //[NotMapped]
+        //public string ShortDescription => Description.Length > 100
+        //    ? Description.Substring(0, 100) + "..."
+        //    : Description;
     }
 }

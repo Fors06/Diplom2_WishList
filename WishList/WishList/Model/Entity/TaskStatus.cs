@@ -16,12 +16,9 @@ namespace WishList.Model.Entity
         public int Id { get; set; }
 
         [Column("Name")]
-        [Required]
-        [MaxLength(50)]
         public string Name { get; set; } = string.Empty;
 
         [Column("Description")]
-        [MaxLength(255)]
         public string Description { get; set; } = string.Empty;
     }
 }

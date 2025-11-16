@@ -27,9 +27,10 @@ namespace WishList.Model.Repository
                 .Include(t => t.Client)
                 .Include(t => t.Category)
                 .Include(t => t.Manager)
-                .Include(t => t.Programmer)
                 .Include(t => t.Status)
+                .Include(t => t.Programmer)
                 .Include(t => t.Priority)
+                .Include(t => t.WorkPlan)
                 .AsQueryable();
         }
 
@@ -42,6 +43,7 @@ namespace WishList.Model.Repository
                 .Include(t => t.Programmer)
                 .Include(t => t.Status)
                 .Include(t => t.Priority)
+                .Include(t => t.WorkPlan)
                 .Where(predicate);
         }
 
@@ -55,6 +57,7 @@ namespace WishList.Model.Repository
                 .Include(t => t.Status)
                 .Include(t => t.Priority)
                 .Include(t => t.TaskProgress)
+                .Include(t => t.WorkPlan)
                 .FirstOrDefault(t => t.Id == id);
         }
 

@@ -13,6 +13,8 @@
 
             <convertes:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <convertes:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+            <convertes:PasswordVisibilityToIconConverter x:Key="PasswordVisibilityToIconConverter"/>
+            <convertes:StringToBrushConverter x:Key="StringToBrushConverter"/>
 
         </ResourceDictionary>
     </Application.Resources>

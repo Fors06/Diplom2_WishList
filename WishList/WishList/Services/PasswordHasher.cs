@@ -36,6 +36,8 @@ namespace WishList.Services
             }
         }
 
+
+
         // Проверка ASP.NET Identity пароля
         private static bool VerifyAspNetIdentityPassword(string password, string storedHash)
         {

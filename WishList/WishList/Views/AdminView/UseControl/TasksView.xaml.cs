@@ -10,24 +10,19 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
-using WishList.ViewModel.AdminViewModel;
 
-namespace WishList.Views.AdminView
+namespace WishList.Views.AdminView.UseControl
 {
     /// <summary>
-    /// Логика взаимодействия для AdminWindow.xaml
+    /// Логика взаимодействия для TasksView.xaml
     /// </summary>
-    public partial class AdminWindow : Window
+    public partial class TasksView : UserControl
     {
-        public AdminWindow()
+        public TasksView()
         {
             InitializeComponent();
-            DataContext = new MainAdminViewModel();
-        }
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
         }
     }
 }

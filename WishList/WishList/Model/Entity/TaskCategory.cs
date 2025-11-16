@@ -21,6 +21,6 @@ namespace WishList.Model.Entity
         [Column("Description")]
         public string Description { get; set; } = string.Empty;
 
-        public virtual ICollection<Task> Tasks { get; set; } 
+        //public virtual ICollection<Task> Tasks { get; set; } 
     }
 }

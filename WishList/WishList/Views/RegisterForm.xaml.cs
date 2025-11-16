@@ -10,24 +10,21 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
-using WishList.ViewModel.AdminViewModel;
+using WishList.ViewModel;
 
-namespace WishList.Views.AdminView
+namespace WishList.Views
 {
     /// <summary>
-    /// Логика взаимодействия для AdminWindow.xaml
+    /// Логика взаимодействия для RegisterForm.xaml
     /// </summary>
-    public partial class AdminWindow : Window
+    public partial class RegisterForm : UserControl
     {
-        public AdminWindow()
+        public RegisterForm()
         {
             InitializeComponent();
-            DataContext = new MainAdminViewModel();
         }
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
+
     }
 }

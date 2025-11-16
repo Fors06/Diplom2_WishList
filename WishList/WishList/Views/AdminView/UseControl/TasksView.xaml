@@ -1,0 +1,103 @@
+﻿<UserControl x:Class="WishList.Views.AdminView.UseControl.TasksView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" 
+                Padding="20,15" BorderBrush="{StaticResource BorderBrush}" 
+                BorderThickness="0,0,0,1" CornerRadius="8,8,0,0">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="➕ Добавить заказ" 
+                        Command="{Binding AddTaskCommand}"
+                        Style="{StaticResource ModernButton}" 
+                        Background="{StaticResource SuccessBrush}"
+                        Margin="0,0,10,0"/>
+
+                <Button Content="✏️ Редактировать" 
+                        Command="{Binding EditTaskCommand}"
+                        Style="{StaticResource ModernButton}" 
+                        Background="{StaticResource AccentBrush}"
+                        Margin="0,0,10,0"/>
+
+                <Button Content="🗑️ Удалить" 
+                        Command="{Binding DeleteTaskCommand}"
+                        Style="{StaticResource ModernButton}" 
+                        Background="{StaticResource ErrorBrush}"
+                        Margin="0,0,20,0"/>
+
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource ModernTextBox}"
+                         Width="300" 
+                         Tag="🔍 Поиск задач..."
+                         FontSize="12"/>
+
+                <Button Content="🔄 Обновить" 
+                        Command="{Binding LoadTasksCommand}"
+                        Style="{StaticResource ModernButton}" 
+                        Background="{StaticResource WarningBrush}"
+                        Margin="10,0,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Tasks DataGrid -->
+        <Border Grid.Row="1" Background="{StaticResource PrimaryBrush}" 
+                CornerRadius="0,0,8,8" Padding="1">
+            <DataGrid ItemsSource="{Binding FilteredTasks}"
+                      SelectedItem="{Binding SelectedTask}"
+                      AutoGenerateColumns="False" 
+                      IsReadOnly="True"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      HeadersVisibility="Column"
+                      VerticalGridLinesBrush="{StaticResource BorderBrush}"
+                      HorizontalGridLinesBrush="{StaticResource BorderBrush}"
+                      ScrollViewer.CanContentScroll="True"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
+                    <DataGridTextColumn Header="Заголовок" Binding="{Binding Title}" Width="250"/>
+                    <DataGridTextColumn Header="Клиент" Binding="{Binding Client.CompanyName}" Width="180"/>
+                    <DataGridTextColumn Header="Статус" Binding="{Binding Status.Name}" Width="120"/>
+                    <DataGridTextColumn Header="Приоритет" Binding="{Binding Priority.Name}" Width="100"/>
+                    <DataGridTextColumn Header="Создан" 
+                                       Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy}" 
+                                       Width="100"/>
+                    <DataGridTextColumn Header="Срок" 
+                                       Binding="{Binding DueDate, StringFormat=dd.MM.yyyy}" 
+                                       Width="100"/>
+                    <DataGridTextColumn Header="Менеджер" 
+                                       Binding="{Binding Manager.FirstName}" 
+                                       Width="120"/>
+                </DataGrid.Columns>
+
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource SecondaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>

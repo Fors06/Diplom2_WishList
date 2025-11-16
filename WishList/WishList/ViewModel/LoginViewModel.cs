@@ -10,73 +10,99 @@ namespace WishList.ViewModel
     public class LoginViewModel : INotifyPropertyChanged
     {
         private string _username;
-        private string _password;
+        private string _realPassword = "";
         private string _errorMessage;
         private bool _isLoading;
+        private bool _isPasswordVisible = false;
 
         public string Username
         {
             get => _username;
-            set
-            {
-                if (_username != value)
-                {
-                    _username = value;
-                    OnPropertyChanged(nameof(Username));
-                }
-            }
+            set { _username = value; OnPropertyChanged(); }
         }
 
-        public string Password
+        public string Password => _realPassword;
+
+        public string DisplayPassword
         {
-            get => _password;
+            get => _isPasswordVisible ? _realPassword : new string('●', _realPassword.Length);
             set
             {
-                if (_password != value)
+                if (_isPasswordVisible)
                 {
-                    _password = value;
-                    OnPropertyChanged(nameof(Password));
+                    _realPassword = value;
                 }
+                else
+                {
+                    ProcessMaskedInput(value);
+                }
+                OnPropertyChanged();
             }
         }
 
         public string ErrorMessage
         {
             get => _errorMessage;
-            set
-            {
-                if (_errorMessage != value)
-                {
-                    _errorMessage = value;
-                    OnPropertyChanged(nameof(ErrorMessage));
-                }
-            }
+            set { _errorMessage = value; OnPropertyChanged(); }
         }
 
         public bool IsLoading
         {
             get => _isLoading;
+            set { _isLoading = value; OnPropertyChanged(); }
+        }
+
+        public bool IsPasswordVisible
+        {
+            get => _isPasswordVisible;
             set
             {
-                if (_isLoading != value)
-                {
-                    _isLoading = value;
-                    OnPropertyChanged(nameof(IsLoading));
-                }
+                _isPasswordVisible = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(PasswordIcon));
+                OnPropertyChanged(nameof(DisplayPassword));
             }
         }
 
+        public string PasswordIcon => _isPasswordVisible ? "👁️" : "👁️‍🗨️";
+
         public ICommand LoginCommand => new RelayCommand(LoginExecute);
         public ICommand EnterKeyCommand => new RelayCommand(LoginExecute);
+        public ICommand SwitchToRegisterCommand => new RelayCommand(SwitchToRegister);
+        public ICommand TogglePasswordVisibilityCommand => new RelayCommand(ExecuteTogglePassword);
 
+        public event Action SwitchToRegisterRequested;
 
-        public LoginViewModel()
+        private void ProcessMaskedInput(string newValue)
         {
+            int oldLength = _realPassword.Length;
+            int newLength = newValue.Length;
+
+            if (newLength > oldLength)
+            {
+                for (int i = oldLength; i < newLength; i++)
+                {
+                    if (newValue[i] != '●')
+                    {
+                        _realPassword += newValue[i];
+                    }
+                }
+            }
+            else if (newLength < oldLength)
+            {
+                _realPassword = _realPassword.Substring(0, newLength);
+            }
+        }
+
+        private void SwitchToRegister(object obj)
+        {
+            ClearOnSwitch(); // Очищаем перед переходом
+            SwitchToRegisterRequested?.Invoke();
         }
 
         public async void LoginExecute(object obj)
         {
-            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(_realPassword))
             {
                 ErrorMessage = "Пожалуйста, введите имя пользователя и пароль.";
                 return;
@@ -89,34 +115,23 @@ namespace WishList.ViewModel
 
                 using (var dbContext = new ApplicationContext())
                 {
-                    // Ищем пользователя по email
                     Employee user = await dbContext.Employees
-                        .FirstOrDefaultAsync(u => u.Email == Username);
+                        .FirstOrDefaultAsync(u => u.Email == Username && u.PasswordHash == Password);
 
                     if (user != null)
                     {
-                        // Проверяем пароль с помощью PasswordHasher
-                        if (PasswordHasher.VerifyPassword(Password, user.PasswordHash))
+                        if (user.IsActive)
                         {
-                            // Проверяем активность пользователя
-                            if (user.IsActive)
-                            {
-                                // Определяем роль и открываем соответствующее окно
-                                await DetermineUserRoleAndOpenWindow(user, obj);
-                            }
-                            else
-                            {
-                                ErrorMessage = "Учетная запись не активна.";
-                            }
+                            await DetermineUserRoleAndOpenWindow(user, obj);
                         }
                         else
                         {
-                            ErrorMessage = "Неверный пароль.";
+                            ErrorMessage = "Учетная запись не активна.";
                         }
                     }
                     else
                     {
-                        ErrorMessage = "Пользователь не найден.";
+                        ErrorMessage = "Неверный логин или пароль";
                     }
                 }
             }
@@ -134,19 +149,19 @@ namespace WishList.ViewModel
         {
             using (var dbContext = new ApplicationContext())
             {
-                // Предполагаемая структура таблицы ролей
                 var userRole = await dbContext.EmployeeRoles
-                    .Include(ur => ur.Name)
-                    .FirstOrDefaultAsync(ur => ur.Id == user.Id);
+                    .FirstOrDefaultAsync(ur => ur.Id == user.RoleId);
 
                 if (userRole != null)
                 {
-                    switch (userRole.Name.ToLower())
+                    string roleName = userRole.Name;
+
+                    switch (roleName)
                     {
-                        case "Администратор":
+                        case "Admin":
                             OpenAdminWindow(obj);
                             break;
-                        case "Менеджер":
+                        case "Manager":
                             OpenManagerWindow(obj);
                             break;
                         default:
@@ -164,28 +179,40 @@ namespace WishList.ViewModel
         private void OpenAdminWindow(object obj)
         {
             var currentWindow = Application.Current.MainWindow as Window ?? Window.GetWindow(obj as DependencyObject);
-
             var adminWindow = new Views.AdminView.AdminWindow();
             Application.Current.MainWindow = adminWindow;
             adminWindow.Show();
-
             currentWindow?.Close();
         }
 
         private void OpenManagerWindow(object obj)
         {
             var currentWindow = Application.Current.MainWindow as Window ?? Window.GetWindow(obj as DependencyObject);
-
             var managerWindow = new Views.ManagerView.ManagerWindow();
             Application.Current.MainWindow = managerWindow;
             managerWindow.Show();
-
             currentWindow?.Close();
         }
 
+        private void ExecuteTogglePassword(object parameter)
+        {
+            IsPasswordVisible = !IsPasswordVisible;
+        }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged(string propertyName)
+        // Метод для очистки при переключении форм
+        public void ClearOnSwitch()
+        {
+            Username = string.Empty;
+            _realPassword = "";
+            ErrorMessage = string.Empty;
+            IsLoading = false;
+            IsPasswordVisible = false;
+            OnPropertyChanged(nameof(DisplayPassword));
+            OnPropertyChanged(nameof(PasswordIcon));
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

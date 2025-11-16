@@ -20,16 +20,10 @@ namespace WishList.Views
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new LoginViewModel();
+            DataContext = new MainViewModel();
         }
 
-        private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
-        {
-            if (DataContext is LoginViewModel viewModel)
-            {
-                viewModel.Password = ((PasswordBox)sender).Password;
-            }
-        }
+      
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {

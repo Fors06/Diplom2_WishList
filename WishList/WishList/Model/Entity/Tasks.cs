@@ -60,9 +60,11 @@ namespace WishList.Model.Entity
         public virtual TaskCategory Category { get; set; }
         public virtual Employee Manager { get; set; }
         public virtual Employee Programmer { get; set; }
-        public virtual TaskStatus Status { get; set; }
+        public virtual TaskStatuss Status { get; set; }
         public virtual TaskPriority Priority { get; set; }
         public virtual TaskProgress TaskProgress { get; set; }
+
+        [ForeignKey("WorkPlansId")] // Явно указать внешний ключ
         public virtual WorkPlan WorkPlan { get; set; }
     }
 }
