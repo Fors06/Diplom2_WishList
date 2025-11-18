@@ -6,7 +6,9 @@
         xmlns:local="clr-namespace:WishList.Views.AdminView" 
         xmlns:views="clr-namespace:WishList.Views.AdminView.UseControl"
         mc:Ignorable="d"
-        Title="AdminWindow" Height="450" Width="800">
+        WindowStyle="None"
+        WindowState="Maximized"
+        Height="450" Width="800">
     <Grid Background="{StaticResource BackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="70"/>
@@ -17,7 +19,8 @@
 
         <!-- Header -->
         <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" 
-                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                MouseDown="Border_MouseDown">
             <Grid Margin="20,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -37,6 +40,29 @@
                               Foreground="{StaticResource TextSecondaryBrush}" 
                               FontSize="12"
                               Margin="0,0,20,0"/>
+
+                    <!-- Minimize Button -->
+                    <Button x:Name="MinimizeButton" 
+                            Style="{StaticResource WindowControlButtonStyle}"
+                            Content="─"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            Click="MinimizeButton_Click"
+                            Margin="0,0,5,0"
+                            Width="30" Height="30"/>
+
+                    <!-- Maximize/Restore Button -->
+                    <Button x:Name="MaximizeButton" 
+                            Style="{StaticResource WindowControlButtonStyle}"
+                            Content="🗖"
+                            FontSize="12"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            Click="MaximizeButton_Click"
+                            Margin="0,0,5,0"
+                            Width="30" Height="30"/>
+
+                    <!-- Close Button -->
                     <Button Style="{StaticResource CloseButtonStyle}" 
                             Click="CloseButton_Click"/>
                 </StackPanel>

@@ -33,5 +33,7 @@ namespace WishList.Model.Entity
 
         // Навигационные свойства
         public virtual EmployeeRole Role { get; set; }
+
+        public string Name => $"{FirstName} {LastName}";
     }
 }

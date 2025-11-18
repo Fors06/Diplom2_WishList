@@ -38,5 +38,7 @@ namespace WishList.Model.Entity
 
         // Навигационные свойства
         public virtual ICollection<Task> Tasks { get; set; }
+
+        public string Name => $"{CompanyName}";
     }
 }

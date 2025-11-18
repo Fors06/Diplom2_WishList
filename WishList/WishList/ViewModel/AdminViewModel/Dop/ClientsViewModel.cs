@@ -297,7 +297,7 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             {
                 var searchLower = SearchText.ToLower();
                 var matches = client.CompanyName?.ToLower().Contains(searchLower) == true ||
-                             client.ContactPerson?.ToLower().Contains(searchLower) == true ||
+                             client.Name?.ToLower().Contains(searchLower) == true ||
                              client.Email?.ToLower().Contains(searchLower) == true ||
                              client.Phone?.ToLower().Contains(searchLower) == true ||
                              client.Address?.ToLower().Contains(searchLower) == true;
