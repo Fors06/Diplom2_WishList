@@ -2,11 +2,17 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:behaviors="clr-namespace:WishList.Services.Admin"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </UserControl.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
@@ -44,27 +50,163 @@
                         Command="{Binding LoadClientsCommand}"
                         Style="{StaticResource ModernButton}" 
                         Background="{StaticResource WarningBrush}"
-                        Margin="10,0,0,0"/>
+                        Margin="10,0,10,0"/>
             </StackPanel>
         </Border>
 
+        <!-- Filters Panel -->
+        <Border Grid.Row="1" Background="{StaticResource SecondaryBrush}" 
+                Padding="15,10" BorderBrush="{StaticResource BorderBrush}" 
+                BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Вторая строка - фильтр по датам с range slider -->
+                <Border Grid.Row="1" Background="{StaticResource PrimaryBrush}" 
+                        CornerRadius="6" Padding="15,10" BorderThickness="1" 
+                        BorderBrush="{StaticResource BorderBrush}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" 
+                                  Text="Дата регистрации:" 
+                                  VerticalAlignment="Center" 
+                                  Margin="0,0,15,0"
+                                  Foreground="{StaticResource TextBrush}"
+                                  FontWeight="SemiBold"/>
+
+                        <!-- Range Slider для дат -->
+                        <Grid Grid.Column="1" VerticalAlignment="Center" Margin="0,0,15,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- DatePicker для точного выбора дат -->
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5">
+                                <DatePicker SelectedDate="{Binding FilterStartDate}"
+                                            Style="{StaticResource ModernDatePicker}"
+                                            Width="150"
+                                            FontSize="11"
+                                            Margin="0,0,10,0"/>
+
+                                <TextBlock Text="—" 
+                                           VerticalAlignment="Center" 
+                                           Margin="0,0,10,0"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+
+                                <DatePicker SelectedDate="{Binding FilterEndDate}"
+                                            Style="{StaticResource ModernDatePicker}"
+                                            Width="150"
+                                            FontSize="11"/>
+                            </StackPanel>
+
+                            <!-- Custom Range Slider -->
+                            <Border Grid.Row="1" Background="{StaticResource BorderBrush}" 
+                                    Height="6" CornerRadius="3" Margin="10,0">
+                                <Grid>
+                                    <!-- Track -->
+                                    <Border x:Name="Track" 
+                                            Background="{StaticResource BorderBrush}" 
+                                            CornerRadius="3"/>
+
+                                    <!-- Selected Range -->
+                                    <Border x:Name="SelectedRange" 
+                                            Background="{StaticResource AccentBrush}" 
+                                            CornerRadius="3"
+                                            HorizontalAlignment="Left"
+                                            Margin="{Binding SelectedRangeMargin}"/>
+
+                                    <!-- Thumbs -->
+                                    <Thumb x:Name="StartThumb" 
+                                           Width="12" 
+                                           Height="12" 
+                                           Background="{StaticResource AccentBrush}"
+                                           Cursor="SizeWE"
+                                           HorizontalAlignment="Left"
+                                           Margin="{Binding StartThumbMargin}"
+                                           behaviors:RangeSliderBehavior.StartThumbDragDeltaCommand="{Binding StartThumbDragDeltaCommand}">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="{TemplateBinding Background}"
+                                                        CornerRadius="6"
+                                                        BorderBrush="White"
+                                                        BorderThickness="2"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+
+                                    <Thumb x:Name="EndThumb" 
+                                           Width="12" 
+                                           Height="12" 
+                                           Background="{StaticResource AccentBrush}"
+                                           Cursor="SizeWE"
+                                           HorizontalAlignment="Left"
+                                           Margin="{Binding EndThumbMargin}"
+                                           behaviors:RangeSliderBehavior.EndThumbDragDeltaCommand="{Binding EndThumbDragDeltaCommand}">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="{TemplateBinding Background}"
+                                                        CornerRadius="6"
+                                                        BorderBrush="White"
+                                                        BorderThickness="2"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Grid>
+                            </Border>
+                        </Grid>
+
+                        <!-- Quick Date Filters -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <Button Content="Сегодня" 
+                                    Command="{Binding SetTodayFilterCommand}"
+                                    Style="{StaticResource ModernButton}"
+                                    Background="Transparent"
+                                    Foreground="{StaticResource AccentBrush}"
+                                    Padding="8,5"
+                                    FontSize="11"
+                                    Margin="0,0,5,0"/>
+                            <Button Content="Неделя" 
+                                    Command="{Binding SetWeekFilterCommand}"
+                                    Style="{StaticResource ModernButton}"
+                                    Background="Transparent"
+                                    Foreground="{StaticResource AccentBrush}"
+                                    Padding="8,5"
+                                    FontSize="11"
+                                    Margin="0,0,5,0"/>
+                            <Button Content="Месяц" 
+                                    Command="{Binding SetMonthFilterCommand}"
+                                    Style="{StaticResource ModernButton}"
+                                    Background="Transparent"
+                                    Foreground="{StaticResource AccentBrush}"
+                                    Padding="8,5"
+                                    FontSize="11"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
         <!-- Clients DataGrid -->
-        <Border Grid.Row="1" Background="{StaticResource PrimaryBrush}" 
+        <Border Grid.Row="2" Background="{StaticResource PrimaryBrush}" 
                 CornerRadius="0,0,8,8" Padding="1">
             <DataGrid ItemsSource="{Binding FilteredClients}"
                       SelectedItem="{Binding SelectedClient}"
-                      AutoGenerateColumns="False" 
-                      IsReadOnly="True"
-                      Background="Transparent"
-                      BorderThickness="0"
-                      HeadersVisibility="Column"
-                      VerticalGridLinesBrush="{StaticResource BorderBrush}"
-                      HorizontalGridLinesBrush="{StaticResource BorderBrush}"
-                      ScrollViewer.CanContentScroll="True"
-                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                      Style="{StaticResource ModernDataGrid}"
+                      ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
+                      RowStyle="{StaticResource ModernDataGridRow}"
+                      CellStyle="{StaticResource ModernDataGridCell}"
+                      AutoGenerateColumns="False">
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
+                    <DataGridTextColumn Header="#" Binding="{Binding OrderNumber}" Width="50"/>
                     <DataGridTextColumn Header="Компания" Binding="{Binding CompanyName}" Width="200"/>
                     <DataGridTextColumn Header="Контактное лицо" Binding="{Binding ContactPerson}" Width="150"/>
                     <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="200"/>
@@ -74,25 +216,92 @@
                                        Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy}" 
                                        Width="120"/>
                 </DataGrid.Columns>
-
-                <DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow">
-                        <Setter Property="Background" Value="Transparent"/>
-                        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                        <Setter Property="Cursor" Value="Hand"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{StaticResource SecondaryBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </DataGrid.RowStyle>
             </DataGrid>
+        </Border>
+
+        <!-- Dialog for Add/Edit Client -->
+        <Border Grid.Row="0" Grid.RowSpan="3"
+                Background="#CC000000"
+                Visibility="{Binding IsDialogOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Border Background="{StaticResource CardBrush}"
+                    CornerRadius="8"
+                    Padding="20"
+                    Width="500"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <TextBlock Grid.Row="0" 
+                              Text="{Binding DialogTitle}"
+                              Style="{StaticResource TitleTextStyle}"
+                              Margin="0,0,0,20"/>
+
+                    <!-- Form -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="400">
+                        <StackPanel>
+                            <TextBlock Text="Название компании *" 
+                                      Style="{StaticResource SubtitleTextStyle}"/>
+                            <TextBox Text="{Binding EditingClient.CompanyName, UpdateSourceTrigger=PropertyChanged}"
+                                    Style="{StaticResource ModernTextBox}"
+                                    Tag="Введите название компании"
+                                    Margin="0,0,0,15"/>
+
+                            <TextBlock Text="Контактное лицо" 
+                                      Style="{StaticResource SubtitleTextStyle}"/>
+                            <TextBox Text="{Binding EditingClient.ContactPerson, UpdateSourceTrigger=PropertyChanged}"
+                                    Style="{StaticResource ModernTextBox}"
+                                    Tag="Введите контактное лицо"
+                                    Margin="0,0,0,15"/>
+
+                            <TextBlock Text="Email *" 
+                                      Style="{StaticResource SubtitleTextStyle}"/>
+                            <TextBox Text="{Binding EditingClient.Email, UpdateSourceTrigger=PropertyChanged}"
+                                    Style="{StaticResource ModernTextBox}"
+                                    Tag="Введите email"
+                                    Margin="0,0,0,15"/>
+
+                            <TextBlock Text="Телефон" 
+                                      Style="{StaticResource SubtitleTextStyle}"/>
+                            <TextBox Text="{Binding EditingClient.Phone, UpdateSourceTrigger=PropertyChanged}"
+                                    Style="{StaticResource ModernTextBox}"
+                                    Tag="Введите телефон"
+                                    Margin="0,0,0,15"/>
+
+                            <TextBlock Text="Адрес" 
+                                      Style="{StaticResource SubtitleTextStyle}"/>
+                            <TextBox Text="{Binding EditingClient.Address, UpdateSourceTrigger=PropertyChanged}"
+                                    Style="{StaticResource ModernTextBox}"
+                                    Tag="Введите адрес"
+                                    Height="60"
+                                    TextWrapping="Wrap"
+                                    AcceptsReturn="True"
+                                    VerticalScrollBarVisibility="Auto"
+                                    Margin="0,0,0,15"/>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Buttons -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                        <Button Content="❌ Отмена"
+                                Command="{Binding CancelEditCommand}"
+                                Style="{StaticResource ModernButton}"
+                                Background="{StaticResource ErrorBrush}"
+                                Margin="0,0,10,0"/>
+                        <Button Content="💾 Сохранить"
+                                Command="{Binding SaveClientCommand}"
+                                Style="{StaticResource ModernButton}"
+                                Background="{StaticResource SuccessBrush}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
         </Border>
     </Grid>
 </UserControl>

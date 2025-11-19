@@ -70,14 +70,14 @@
 
                 <!-- Пароль -->
                 <TextBlock Text="Пароль"
-                          Style="{StaticResource SubtitleTextStyle}"
-                          Margin="0,15,0,0"/>
+                           Style="{StaticResource SubtitleTextStyle}"
+                           Margin="0,15,0,0"/>
 
                 <!-- Пароль -->
                 <TextBox Style="{StaticResource ModernPasswordTextBox}"
-Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
-services:TextBoxBehavior.MonitorText="True"
-Height="45"/>
+                         Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+                         services:TextBoxBehavior.MonitorText="True"
+                         Height="45"/>
 
                 <!-- Подтверждение пароля -->
                 <TextBlock Text="Подтверждение пароля"
@@ -88,9 +88,9 @@ Height="45"/>
 
                 <!-- Подтверждение пароля -->
                 <TextBox Style="{StaticResource ModernPasswordTextBox}"
-         Text="{Binding ConfirmPassword, UpdateSourceTrigger=PropertyChanged}"
-         services:TextBoxBehavior.MonitorText="True"
-         Height="45"/>
+                         Text="{Binding ConfirmPassword, UpdateSourceTrigger=PropertyChanged}"
+                         services:TextBoxBehavior.MonitorText="True"
+                         Height="45"/>
 
                 <!-- Роль пользователя -->
                 <TextBlock Text="Роль"

@@ -4,15 +4,19 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using WishList.Model.Repository;
 using WishList.ViewModel;
 using WishList.ViewModel.AdminViewModel.Dop;
+using WishList.Data.SwitchTheme;
 
 namespace WishList.ViewModel.AdminViewModel
 {
-    public class MainAdminViewModel : INotifyPropertyChanged
+    public class MainAdminViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly ApplicationContext _context;
+        private readonly DispatcherTimer _refreshTimer;
+        private bool _disposed = false;
 
         public MainAdminViewModel()
         {
@@ -25,6 +29,12 @@ namespace WishList.ViewModel.AdminViewModel
 
             InitializeCommands();
             LoadStatistics(null);
+
+            // Настраиваем таймер для автоматического обновления
+            _refreshTimer = new DispatcherTimer();
+            _refreshTimer.Interval = TimeSpan.FromMinutes(5);
+            _refreshTimer.Tick += (s, e) => RefreshData();
+            _refreshTimer.Start();
         }
 
         #region Child ViewModels
@@ -98,19 +108,41 @@ namespace WishList.ViewModel.AdminViewModel
 
         public ICommand LoadDataCommand { get; private set; }
         public ICommand SwitchTabCommand { get; private set; }
+        public ICommand RefreshCommand { get; private set; }
+        public ICommand ToggleThemeCommand { get; private set; }
 
         private void InitializeCommands()
         {
             LoadDataCommand = new RelayCommand(LoadStatistics);
             SwitchTabCommand = new RelayCommand(SwitchTab);
+            RefreshCommand = new RelayCommand(_ => RefreshData());
+            ToggleThemeCommand = new RelayCommand(ExecuteToggleTheme);
         }
 
         #endregion
 
         #region Methods
 
+        private void RefreshData()
+        {
+            if (_disposed) return;
+
+            try
+            {
+                LoadStatistics(null);
+                CurrentDate = DateTime.Now.ToString("dd.MM.yyyy HH:mm");
+                StatusMessage = $"Данные автоматически обновлены • {DateTime.Now:HH:mm}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Ошибка при автоматическом обновлении: {ex.Message}";
+            }
+        }
+
         private void LoadStatistics(object obj)
         {
+            if (_disposed) return;
+
             try
             {
                 IsLoading = true;
@@ -125,7 +157,7 @@ namespace WishList.ViewModel.AdminViewModel
                 var totalTasks = tasksRepo.GetAll().Count();
                 var activeEmployees = employeesRepo.GetAll().Count(e => e.IsActive);
                 var totalClients = clientsRepo.GetAll().Count();
-                var completedTasks = tasksRepo.GetAll().Count(t => t.StatusId == 4); // Предполагаем, что 4 - ID завершенного статуса
+                var completedTasks = tasksRepo.GetAll().Count(t => t.StatusId == 4);
 
                 StatisticsCards = new ObservableCollection<StatisticsCard>
                 {
@@ -178,6 +210,32 @@ namespace WishList.ViewModel.AdminViewModel
             if (obj is int tabIndex)
             {
                 SelectedTabIndex = tabIndex;
+            }
+        }
+
+        private void ExecuteToggleTheme(object parameter)
+        {
+            try
+            {
+                ThemeManager.ToggleTheme();
+                var currentTheme = ThemeManager.GetCurrentTheme();
+                StatusMessage = $"Тема изменена на {(currentTheme ? "тёмную" : "светлую")}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Ошибка смены темы: {ex.Message}";
+                MessageBox.Show($"Ошибка смены темы: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _refreshTimer?.Stop();
+                _context?.Dispose();
+                _disposed = true;
             }
         }
 

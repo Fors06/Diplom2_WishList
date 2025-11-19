@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -11,48 +8,22 @@ namespace WishList.Data.SwitchTheme
 {
     public static class SettingsManager
     {
-        private const string settingsFilePath = "appsettings.json"; // Путь к файлу настроек
-
-        //public static async Task<AppSettings> LoadAsync()
-        //{
-        //    try
-        //    {
-        //        using var fs = File.OpenRead(settingsFilePath);
-        //        return await JsonSerializer.DeserializeAsync<AppSettings>(fs);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine($"Error loading settings: {ex.Message}");
-        //        return new AppSettings(); // Возвращаем дефолтные настройки
-        //    }
-        //}
-
-        //public static async Task SaveAsync(AppSettings settings)
-        //{
-        //    try
-        //    {
-        //        using var fs = File.Create(settingsFilePath);
-        //        await JsonSerializer.SerializeAsync(fs, settings);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine($"Error saving settings: {ex.Message}");
-        //    }
-        //}
+        private const string settingsFilePath = "appsettings.json";
 
         public static AppSettings LoadAsync()
         {
             try
             {
-                if (!File.Exists(settingsFilePath)) return new AppSettings(); // Дефолтные настройки
+                if (!File.Exists(settingsFilePath))
+                    return new AppSettings { IsDarkThemeSelected = false };
 
-                using var stream = File.OpenRead(settingsFilePath);
-                return JsonSerializer.Deserialize<AppSettings>(stream)!;
+                var json = File.ReadAllText(settingsFilePath);
+                return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings { IsDarkThemeSelected = false };
             }
             catch (Exception e)
             {
                 Debug.WriteLine("Ошибка загрузки настроек: " + e.Message);
-                return new AppSettings(); // Возвращаем дефолтные настройки
+                return new AppSettings { IsDarkThemeSelected = false };
             }
         }
 
@@ -60,12 +31,13 @@ namespace WishList.Data.SwitchTheme
         {
             try
             {
-                using var fs = File.Create(settingsFilePath);
-                JsonSerializer.SerializeAsync(fs, settings);
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var json = JsonSerializer.Serialize(settings, options);
+                File.WriteAllText(settingsFilePath, json);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error saving settings: {ex.Message}");
+                Debug.WriteLine($"Error saving settings: {ex.Message}");
             }
         }
     }

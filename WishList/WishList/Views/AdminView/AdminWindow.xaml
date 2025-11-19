@@ -39,7 +39,27 @@
                     <TextBlock Text="{Binding CurrentDate}" 
                               Foreground="{StaticResource TextSecondaryBrush}" 
                               FontSize="12"
-                              Margin="0,0,20,0"/>
+                              Margin="0,0,15,0"/>
+
+                    <!-- Кнопка смены темы -->
+                    <Button Command="{Binding ToggleThemeCommand}"
+                            ToolTip="Сменить тему"
+                            Style="{StaticResource WindowControlButtonStyle}"
+                            Content="🌙"
+                            FontSize="12"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            Margin="0,0,10,0"
+                            Width="30" Height="30"/>
+
+                    <!-- Refresh Button -->
+                    <Button Command="{Binding RefreshCommand}"
+                            ToolTip="Обновить данные"
+                            Style="{StaticResource WindowControlButtonStyle}"
+                            Content="🔄"
+                            FontSize="12"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            Margin="0,0,10,0"
+                            Width="30" Height="30"/>
 
                     <!-- Minimize Button -->
                     <Button x:Name="MinimizeButton" 
@@ -197,9 +217,16 @@
         <StatusBar Grid.Row="3" Background="{StaticResource PrimaryBrush}" 
                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
             <StatusBarItem>
-                <TextBlock Text="{Binding StatusMessage}" 
-                          Foreground="{StaticResource TextSecondaryBrush}" 
-                          FontSize="11"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding StatusMessage}" 
+                              Foreground="{StaticResource TextSecondaryBrush}" 
+                              FontSize="11"/>
+                    <TextBlock Text=" • Автообновление каждые 5 мин" 
+                              Foreground="{StaticResource TextSecondaryBrush}" 
+                              FontSize="11"
+                              Opacity="0.7"
+                              Margin="10,0,0,0"/>
+                </StackPanel>
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal" Margin="0,0,10,0">

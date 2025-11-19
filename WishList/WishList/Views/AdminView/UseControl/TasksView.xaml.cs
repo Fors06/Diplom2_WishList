@@ -25,5 +25,10 @@ namespace WishList.Views.AdminView.UseControl
         {
             InitializeComponent();
         }
+        private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            // Блокируем прокрутку колесиком мыши в выпадающем списке
+            e.Handled = true;
+        }
     }
 }

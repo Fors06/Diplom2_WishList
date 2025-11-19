@@ -103,6 +103,7 @@ namespace WishList.ViewModel
             }
             catch (Exception ex)
             {
+                MessageBox.Show(ex.ToString());
                 AvailableRoles.Clear();
                 AvailableRoles.Add(new EmployeeRole { Id = 2, Name = "Менеджер" });
                 AvailableRoles.Add(new EmployeeRole { Id = 3, Name = "Программист" });

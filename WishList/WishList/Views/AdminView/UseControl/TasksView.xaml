@@ -9,18 +9,17 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
-       
-
         <!-- DataTemplate для элементов с CheckBox -->
         <DataTemplate x:Key="CheckBoxItemTemplate">
             <Border Background="Transparent" 
-            HorizontalAlignment="Stretch">
+                    HorizontalAlignment="Stretch">
                 <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                  VerticalAlignment="Center"
-                  HorizontalAlignment="Stretch">
+                          VerticalAlignment="Center"
+                          HorizontalAlignment="Stretch">
                     <TextBlock Text="{Binding Name}" 
-                       VerticalAlignment="Center"
-                       Margin="2,0"/>
+                               Foreground="{StaticResource TextBrush}"
+                               VerticalAlignment="Center"
+                               Margin="2,0"/>
                 </CheckBox>
             </Border>
         </DataTemplate>
@@ -68,7 +67,7 @@
                         Command="{Binding LoadTasksCommand}"
                         Style="{StaticResource ModernButton}" 
                         Background="{StaticResource WarningBrush}"
-                        Margin="10,0,0,0"/>
+                        Margin="10,0,10,0"/>
             </StackPanel>
         </Border>
 
@@ -95,7 +94,6 @@
                             <ComboBox ItemsSource="{Binding SelectableStatuses}"
                                       ItemTemplate="{StaticResource CheckBoxItemTemplate}"
                                       Style="{StaticResource ModernComboBox}"
-                                      Text="{Binding SelectedStatusesText}"
                                       IsEditable="True"
                                       IsReadOnly="True">
                                 <ComboBox.ItemsPanel>
@@ -108,7 +106,9 @@
                                        IsHitTestVisible="False"
                                        VerticalAlignment="Center"
                                        Margin="15,0,0,0"
-                                       Foreground="{StaticResource TextBrush}"/>
+                                       Foreground="{StaticResource TextBrush}"
+                                       TextTrimming="CharacterEllipsis"
+                                       ToolTip="{Binding SelectedStatusesText}"/>
                         </Grid>
                     </StackPanel>
 
@@ -123,7 +123,6 @@
                             <ComboBox ItemsSource="{Binding SelectablePriorities}"
                                       ItemTemplate="{StaticResource CheckBoxItemTemplate}"
                                       Style="{StaticResource ModernComboBox}" 
-                                      Text="{Binding SelectedPrioritiesText}"
                                       IsEditable="True"
                                       IsReadOnly="True">
                                 <ComboBox.ItemsPanel>
@@ -136,7 +135,9 @@
                                        IsHitTestVisible="False"
                                        VerticalAlignment="Center"
                                        Margin="15,0,0,0"
-                                       Foreground="{StaticResource TextBrush}"/>
+                                       Foreground="{StaticResource TextBrush}"
+                                       TextTrimming="CharacterEllipsis"
+                                       ToolTip="{Binding SelectedPrioritiesText}"/>
                         </Grid>
                     </StackPanel>
 
@@ -151,7 +152,6 @@
                             <ComboBox ItemsSource="{Binding SelectableManagers}"
                                       ItemTemplate="{StaticResource CheckBoxItemTemplate}"
                                       Style="{StaticResource ModernComboBox}"
-                                      Text="{Binding SelectedManagersText}"
                                       IsEditable="True"
                                       IsReadOnly="True">
                                 <ComboBox.ItemsPanel>
@@ -164,7 +164,9 @@
                                        IsHitTestVisible="False"
                                        VerticalAlignment="Center"
                                        Margin="15,0,0,0"
-                                       Foreground="{StaticResource TextBrush}"/>
+                                       Foreground="{StaticResource TextBrush}"
+                                       TextTrimming="CharacterEllipsis"
+                                       ToolTip="{Binding SelectedManagersText}"/>
                         </Grid>
                     </StackPanel>
 
@@ -174,14 +176,13 @@
                                    VerticalAlignment="Center" 
                                    Margin="0,0,5,0"
                                    Foreground="{StaticResource TextBrush}"
-                                   FontWeight="SemiBold"/>   
+                                   FontWeight="SemiBold"/>
                         <Grid Width="160">
                             <ComboBox ItemsSource="{Binding SelectableClients}"
                                       ItemTemplate="{StaticResource CheckBoxItemTemplate}"
                                       Style="{StaticResource ModernComboBox}"
-                                      Text="{Binding SelectedClientsText}"
                                       IsEditable="True"
-                                      IsReadOnly="True">   
+                                      IsReadOnly="True">
                                 <ComboBox.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <StackPanel/>
@@ -192,7 +193,9 @@
                                        IsHitTestVisible="False"
                                        VerticalAlignment="Center"
                                        Margin="15,0,0,0"
-                                       Foreground="{StaticResource TextBrush}"/>
+                                       Foreground="{StaticResource TextBrush}"
+                                       TextTrimming="CharacterEllipsis"
+                                       ToolTip="{Binding SelectedClientsText}"/>
                         </Grid>
                     </StackPanel>
 
@@ -233,21 +236,24 @@
 
                             <!-- TextBox для отображения выбранного диапазона -->
                             <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5">
-                                <TextBox Text="{Binding FilterStartDate, StringFormat=dd.MM.yyyy, UpdateSourceTrigger=PropertyChanged}"
-                                         Style="{StaticResource ModernTextBox}"
-                                         Width="100"
-                                         Tag="От"
-                                         FontSize="11"
-                                         Margin="0,0,10,0"/>
-                                <TextBlock Text="—" 
-                                          VerticalAlignment="Center" 
-                                          Margin="0,0,10,0"
-                                          Foreground="{StaticResource TextSecondaryBrush}"/>
-                                <TextBox Text="{Binding FilterEndDate, StringFormat=dd.MM.yyyy, UpdateSourceTrigger=PropertyChanged}"
-                                         Style="{StaticResource ModernTextBox}"
-                                         Width="100"
-                                         Tag="До"
-                                         FontSize="11"/>
+                                <!-- В разделе фильтра по датам замените TextBox на DatePicker -->
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5">
+                                    <DatePicker SelectedDate="{Binding FilterStartDate}"
+                                                Style="{StaticResource ModernDatePicker}"
+                                                Width="150"
+                                                FontSize="11"
+                                                Margin="0,0,10,0"/>     
+
+                                    <TextBlock Text="—" 
+                                               VerticalAlignment="Center" 
+                                               Margin="0,0,10,0"
+                                               Foreground="{StaticResource TextSecondaryBrush}"/>
+
+                                    <DatePicker SelectedDate="{Binding FilterEndDate}"
+                                                Style="{StaticResource ModernDatePicker}"
+                                                Width="150"
+                                                FontSize="11"/>
+                                </StackPanel>
                             </StackPanel>
 
                             <!-- Custom Range Slider -->
@@ -339,54 +345,234 @@
 
         <!-- Tasks DataGrid -->
         <Border Grid.Row="2" Background="{StaticResource PrimaryBrush}" 
-                CornerRadius="0,0,8,8" Padding="1">
+        CornerRadius="0,0,8,8" Padding="1">
             <DataGrid ItemsSource="{Binding TasksView}"
-                      SelectedItem="{Binding SelectedTask}"
-                      AutoGenerateColumns="False" 
-                      IsReadOnly="True"
-                      Background="Transparent"
-                      BorderThickness="0"
-                      HeadersVisibility="Column"
-                      VerticalGridLinesBrush="{StaticResource BorderBrush}"
-                      HorizontalGridLinesBrush="{StaticResource BorderBrush}"
-                      ScrollViewer.CanContentScroll="True"
-                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+              SelectedItem="{Binding SelectedTask}"
+              Style="{StaticResource ModernDataGrid}"
+              ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
+              RowStyle="{StaticResource ModernDataGridRow}"
+              CellStyle="{StaticResource ModernDataGridCell}">
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
+                    <DataGridTextColumn Header="#" Binding="{Binding OrderNumber}" Width="50"/>
                     <DataGridTextColumn Header="Заголовок" Binding="{Binding Title}" Width="250"/>
                     <DataGridTextColumn Header="Клиент" Binding="{Binding Client.CompanyName}" Width="180"/>
                     <DataGridTextColumn Header="Статус" Binding="{Binding Status.Name}" Width="120"/>
                     <DataGridTextColumn Header="Приоритет" Binding="{Binding Priority.Name}" Width="100"/>
                     <DataGridTextColumn Header="Создан" 
-                                       Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy}" 
-                                       Width="100"/>
+                               Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy}" 
+                               Width="100"/>
                     <DataGridTextColumn Header="Срок" 
-                                       Binding="{Binding DueDate, StringFormat=dd.MM.yyyy}" 
-                                       Width="100"/>
+                               Binding="{Binding DueDate, StringFormat=dd.MM.yyyy}" 
+                               Width="100"/>
                     <DataGridTextColumn Header="Менеджер" 
-                                       Binding="{Binding Manager.FirstName}" 
-                                       Width="120"/>
+                               Binding="{Binding Manager.FirstName}" 
+                               Width="120"/>
                 </DataGrid.Columns>
-
-                <DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow">
-                        <Setter Property="Background" Value="Transparent"/>
-                        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                        <Setter Property="Cursor" Value="Hand"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{StaticResource SecondaryBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </DataGrid.RowStyle>
             </DataGrid>
+        </Border>
+        <!-- Dialog for Add/Edit Task -->
+        <Border Grid.Row="0" Grid.RowSpan="3"
+                Background="#CC000000"
+                Visibility="{Binding IsDialogOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Border Background="{StaticResource CardBrush}"
+                    CornerRadius="8"
+                    Padding="20"
+                    Width="600"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <TextBlock Grid.Row="0" 
+                              Text="{Binding DialogTitle}"
+                              Style="{StaticResource TitleTextStyle}"
+                              Margin="0,0,0,20"/>
+
+                    <!-- Form -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="400">
+                        <StackPanel>
+                            <TextBlock Text="Заголовок *" 
+                                      Style="{StaticResource SubtitleTextStyle}"/>
+                            <TextBox Text="{Binding EditingTask.Title, UpdateSourceTrigger=PropertyChanged}"
+                                    Style="{StaticResource ModernTextBox}"
+                                    Tag="Введите заголовок задачи"
+                                    Margin="0,0,0,15"/>
+
+                            <TextBlock Text="Описание" 
+                                      Style="{StaticResource SubtitleTextStyle}"/>
+                            <TextBox Text="{Binding EditingTask.Description, UpdateSourceTrigger=PropertyChanged}"
+                                    Style="{StaticResource ModernTextBox}"
+                                    Tag="Введите описание задачи"
+                                    Height="60"
+                                    TextWrapping="Wrap"
+                                    AcceptsReturn="True"
+                                    VerticalScrollBarVisibility="Auto"
+                                    Margin="0,0,0,15"/>
+
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Клиент *" 
+                                              Style="{StaticResource SubtitleTextStyle}"/>
+                                    <ComboBox ItemsSource="{Binding AllClients}"
+                                              SelectedValue="{Binding EditingTask.ClientId}"
+                                              SelectedValuePath="Id"
+                                              DisplayMemberPath="CompanyName"
+                                              Style="{StaticResource ModernComboBox}"
+                                              Margin="0,0,0,10"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Категория *" 
+                                              Style="{StaticResource SubtitleTextStyle}"/>
+                                    <ComboBox ItemsSource="{Binding AllCategories}"
+                                              SelectedValue="{Binding EditingTask.CategoryId}"
+                                              SelectedValuePath="Id"
+                                              DisplayMemberPath="Name"
+                                              Style="{StaticResource ModernComboBox}"
+                                              Margin="0,0,0,10"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Менеджер *" 
+                                              Style="{StaticResource SubtitleTextStyle}"/>
+                                    <ComboBox ItemsSource="{Binding AllManagers}"
+                                              SelectedValue="{Binding EditingTask.ManagerId}"
+                                              SelectedValuePath="Id"
+                                              DisplayMemberPath="Name"
+                                              Style="{StaticResource ModernComboBox}"
+                                              Margin="0,0,0,10"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Программист" 
+                                              Style="{StaticResource SubtitleTextStyle}"/>
+                                    <ComboBox ItemsSource="{Binding AllProgrammers}"
+                                              SelectedValue="{Binding EditingTask.ProgrammerId}"
+                                              SelectedValuePath="Id"
+                                              DisplayMemberPath="Name"
+                                              Style="{StaticResource ModernComboBox}"
+                                              Margin="0,0,0,10"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Статус *" 
+                                              Style="{StaticResource SubtitleTextStyle}"/>
+                                    <ComboBox ItemsSource="{Binding AllStatuses}"
+                                              SelectedValue="{Binding EditingTask.StatusId}"
+                                              SelectedValuePath="Id"
+                                              DisplayMemberPath="Name"
+                                              Style="{StaticResource ModernComboBox}"
+                                              Margin="0,0,0,10"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Приоритет *" 
+                                              Style="{StaticResource SubtitleTextStyle}"/>
+                                    <ComboBox ItemsSource="{Binding AllPriorities}"
+                                              SelectedValue="{Binding EditingTask.PriorityId}"
+                                              SelectedValuePath="Id"
+                                              DisplayMemberPath="Name"
+                                              Style="{StaticResource ModernComboBox}"
+                                              Margin="0,0,0,10"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Срок выполнения" 
+                                              Style="{StaticResource SubtitleTextStyle}"/>
+                                    <DatePicker SelectedDate="{Binding EditingTask.DueDate}"
+                                               Style="{StaticResource ModernDatePicker}"
+                                               Margin="0,0,0,10"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Завершена" 
+                                              Style="{StaticResource SubtitleTextStyle}"/>
+                                    <DatePicker SelectedDate="{Binding EditingTask.CompletedDate}"
+                                               Style="{StaticResource ModernDatePicker}"
+                                               Margin="0,0,0,10"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Плановые часы" 
+                                              Style="{StaticResource SubtitleTextStyle}"/>
+                                    <TextBox Text="{Binding EditingTask.EstimatedHours, UpdateSourceTrigger=PropertyChanged}"
+                                            Style="{StaticResource ModernTextBox}"
+                                            Tag="0.0"
+                                            Margin="0,0,0,10"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Фактические часы" 
+                                              Style="{StaticResource SubtitleTextStyle}"/>
+                                    <TextBox Text="{Binding EditingTask.ActualHours, UpdateSourceTrigger=PropertyChanged}"
+                                            Style="{StaticResource ModernTextBox}"
+                                            Tag="0.0"
+                                            Margin="0,0,0,10"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Buttons -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                        <Button Content="❌ Отмена"
+                                Command="{Binding CancelEditCommand}"
+                                Style="{StaticResource ModernButton}"
+                                Background="{StaticResource ErrorBrush}"
+                                Margin="0,0,10,0"/>
+                        <Button Content="💾 Сохранить"
+                                Command="{Binding SaveTaskCommand}"
+                                Style="{StaticResource ModernButton}"
+                                Background="{StaticResource SuccessBrush}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
         </Border>
     </Grid>
 </UserControl>

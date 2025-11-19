@@ -33,19 +33,81 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             {
                 if (Item == null) return string.Empty;
 
-                // Для Employee используем FullName
                 if (Item is Employee employee)
                     return employee.Name ?? string.Empty;
 
-                // Для Client используем CompanyName
                 if (Item is Client client)
                     return client.Name ?? string.Empty;
 
-                // Для TaskStatus и TaskPriority используем Name
                 var nameProp = Item.GetType().GetProperty("Name");
                 return nameProp?.GetValue(Item)?.ToString() ?? Item.ToString();
             }
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public class TaskWithOrder : INotifyPropertyChanged
+    {
+        private Task _task;
+        public Task Task
+        {
+            get => _task;
+            set
+            {
+                _task = value;
+                OnPropertyChanged(nameof(Task));
+                // Оповещаем об изменении всех прокси-свойств при изменении задачи
+                OnPropertyChanged(nameof(Id));
+                OnPropertyChanged(nameof(Title));
+                OnPropertyChanged(nameof(Description));
+                OnPropertyChanged(nameof(ClientId));
+                OnPropertyChanged(nameof(Client));
+                OnPropertyChanged(nameof(StatusId));
+                OnPropertyChanged(nameof(Status));
+                OnPropertyChanged(nameof(PriorityId));
+                OnPropertyChanged(nameof(Priority));
+                OnPropertyChanged(nameof(CreatedDate));
+                OnPropertyChanged(nameof(DueDate));
+                OnPropertyChanged(nameof(ManagerId));
+                OnPropertyChanged(nameof(Manager));
+                OnPropertyChanged(nameof(ProgrammerId));
+                OnPropertyChanged(nameof(Programmer));
+                OnPropertyChanged(nameof(CategoryId));
+                OnPropertyChanged(nameof(Category));
+                OnPropertyChanged(nameof(CompletedDate));
+                OnPropertyChanged(nameof(EstimatedHours));
+                OnPropertyChanged(nameof(ActualHours));
+            }
+        }
+
+        public int OrderNumber { get; set; }
+
+        // Прокси-свойства для привязки
+        public int Id => Task?.Id ?? 0;
+        public string Title => Task?.Title ?? string.Empty;
+        public string Description => Task?.Description ?? string.Empty;
+        public int? ClientId => Task?.ClientId;
+        public Client Client => Task?.Client;
+        public int? StatusId => Task?.StatusId;
+        public TaskStatuss Status => Task?.Status;
+        public int? PriorityId => Task?.PriorityId;
+        public TaskPriority Priority => Task?.Priority;
+        public DateTime CreatedDate => Task?.CreatedDate ?? DateTime.MinValue;
+        public DateTime? DueDate => Task?.DueDate;
+        public int? ManagerId => Task?.ManagerId;
+        public Employee Manager => Task?.Manager;
+        public int? ProgrammerId => Task?.ProgrammerId;
+        public Employee Programmer => Task?.Programmer;
+        public int? CategoryId => Task?.CategoryId;
+        public TaskCategory Category => Task?.Category;
+        public DateTime? CompletedDate => Task?.CompletedDate;
+        public decimal? EstimatedHours => Task?.EstimatedHours;
+        public decimal? ActualHours => Task?.ActualHours;
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName)
@@ -62,6 +124,9 @@ namespace WishList.ViewModel.AdminViewModel.Dop
         private readonly TaskStatusesRepository _statusesRepository;
         private readonly TaskPrioritiesRepository _prioritiesRepository;
         private readonly EmployeesRepository _employeesRepository;
+        private readonly TaskCategoriesRepository _categoriesRepository;
+        private readonly TaskProgressRepository _progressRepository;
+        private readonly WorkPlansRepository _workPlansRepository;
 
         // Константы для диапазона дат
         private readonly DateTime _minDate = DateTime.Today.AddYears(-1);
@@ -76,15 +141,20 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             _statusesRepository = new TaskStatusesRepository(_context);
             _prioritiesRepository = new TaskPrioritiesRepository(_context);
             _employeesRepository = new EmployeesRepository(_context);
+            _categoriesRepository = new TaskCategoriesRepository(_context);
+            _progressRepository = new TaskProgressRepository(_context);
+            _workPlansRepository = new WorkPlansRepository(_context);
 
-            Tasks = new ObservableCollection<Task>();
-            FilteredTasks = new ObservableCollection<Task>();
+            Tasks = new ObservableCollection<TaskWithOrder>();
+            FilteredTasks = new ObservableCollection<TaskWithOrder>();
 
             // Коллекции для множественного выбора
             SelectableStatuses = new ObservableCollection<SelectableItem<TaskStatuss>>();
             SelectablePriorities = new ObservableCollection<SelectableItem<TaskPriority>>();
             SelectableManagers = new ObservableCollection<SelectableItem<Employee>>();
             SelectableClients = new ObservableCollection<SelectableItem<Client>>();
+            SelectableCategories = new ObservableCollection<SelectableItem<TaskCategory>>();
+            SelectableProgrammers = new ObservableCollection<SelectableItem<Employee>>();
 
             // Инициализация свойств для слайдера
             FilterStartDate = DateTime.Today.AddDays(-30);
@@ -97,6 +167,54 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             InitializeCommands();
             LoadInitialData();
         }
+
+        #region Properties for Add/Edit Dialog
+
+        private bool _isDialogOpen;
+        public bool IsDialogOpen
+        {
+            get => _isDialogOpen;
+            set
+            {
+                _isDialogOpen = value;
+                OnPropertyChanged(nameof(IsDialogOpen));
+            }
+        }
+
+        private bool _isEditMode;
+        public bool IsEditMode
+        {
+            get => _isEditMode;
+            set
+            {
+                _isEditMode = value;
+                OnPropertyChanged(nameof(IsEditMode));
+                OnPropertyChanged(nameof(DialogTitle));
+            }
+        }
+
+        public string DialogTitle => IsEditMode ? "Редактирование задачи" : "Добавление новой задачи";
+
+        private Task _editingTask;
+        public Task EditingTask
+        {
+            get => _editingTask;
+            set
+            {
+                _editingTask = value;
+                OnPropertyChanged(nameof(EditingTask));
+            }
+        }
+
+        // Коллекции для выпадающих списков в диалоге
+        public ObservableCollection<TaskStatuss> AllStatuses { get; } = new ObservableCollection<TaskStatuss>();
+        public ObservableCollection<TaskPriority> AllPriorities { get; } = new ObservableCollection<TaskPriority>();
+        public ObservableCollection<Employee> AllManagers { get; } = new ObservableCollection<Employee>();
+        public ObservableCollection<Employee> AllProgrammers { get; } = new ObservableCollection<Employee>();
+        public ObservableCollection<Client> AllClients { get; } = new ObservableCollection<Client>();
+        public ObservableCollection<TaskCategory> AllCategories { get; } = new ObservableCollection<TaskCategory>();
+
+        #endregion
 
         #region Slider Properties
 
@@ -221,8 +339,8 @@ namespace WishList.ViewModel.AdminViewModel.Dop
 
         #region Other Properties
 
-        private ObservableCollection<Task> _tasks;
-        public ObservableCollection<Task> Tasks
+        private ObservableCollection<TaskWithOrder> _tasks;
+        public ObservableCollection<TaskWithOrder> Tasks
         {
             get => _tasks;
             set
@@ -232,8 +350,8 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             }
         }
 
-        private ObservableCollection<Task> _filteredTasks;
-        public ObservableCollection<Task> FilteredTasks
+        private ObservableCollection<TaskWithOrder> _filteredTasks;
+        public ObservableCollection<TaskWithOrder> FilteredTasks
         {
             get => _filteredTasks;
             set
@@ -247,8 +365,8 @@ namespace WishList.ViewModel.AdminViewModel.Dop
 
         public ICollectionView TasksView { get; private set; }
 
-        private Task _selectedTask;
-        public Task SelectedTask
+        private TaskWithOrder _selectedTask;
+        public TaskWithOrder SelectedTask
         {
             get => _selectedTask;
             set
@@ -275,6 +393,8 @@ namespace WishList.ViewModel.AdminViewModel.Dop
         public ObservableCollection<SelectableItem<TaskPriority>> SelectablePriorities { get; }
         public ObservableCollection<SelectableItem<Employee>> SelectableManagers { get; }
         public ObservableCollection<SelectableItem<Client>> SelectableClients { get; }
+        public ObservableCollection<SelectableItem<TaskCategory>> SelectableCategories { get; }
+        public ObservableCollection<SelectableItem<Employee>> SelectableProgrammers { get; }
 
         private bool _isLoading;
         public bool IsLoading
@@ -313,6 +433,8 @@ namespace WishList.ViewModel.AdminViewModel.Dop
         public RelayCommand SetMonthFilterCommand { get; private set; }
         public RelayCommand StartThumbDragDeltaCommand { get; private set; }
         public RelayCommand EndThumbDragDeltaCommand { get; private set; }
+        public RelayCommand SaveTaskCommand { get; private set; }
+        public RelayCommand CancelEditCommand { get; private set; }
 
         private void InitializeCommands()
         {
@@ -327,6 +449,8 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             SetMonthFilterCommand = new RelayCommand(ExecuteSetMonthFilter);
             StartThumbDragDeltaCommand = new RelayCommand(ExecuteStartThumbDragDelta);
             EndThumbDragDeltaCommand = new RelayCommand(ExecuteEndThumbDragDelta);
+            SaveTaskCommand = new RelayCommand(ExecuteSaveTask);
+            CancelEditCommand = new RelayCommand(ExecuteCancelEdit);
         }
 
         private bool CanExecuteLoadTasks(object parameter) => !IsLoading;
@@ -415,9 +539,16 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                     .ToList();
 
                 Tasks.Clear();
+
+                // Добавляем задачи с порядковыми номерами
+                int orderNumber = 1;
                 foreach (var task in tasks)
                 {
-                    Tasks.Add(task);
+                    Tasks.Add(new TaskWithOrder
+                    {
+                        Task = task,
+                        OrderNumber = orderNumber++
+                    });
                 }
                 UpdateFilteredTasks();
 
@@ -441,9 +572,14 @@ namespace WishList.ViewModel.AdminViewModel.Dop
         {
             try
             {
-                StatusMessage = "Функция добавления задачи будет реализована в диалоговом окне";
-                MessageBox.Show("Функция добавления задачи находится в разработке", "Информация",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                IsEditMode = false;
+                EditingTask = new Task
+                {
+                    CreatedDate = DateTime.Now,
+                    DueDate = DateTime.Now.AddDays(7)
+                };
+                IsDialogOpen = true;
+                StatusMessage = "Добавление новой задачи";
             }
             catch (Exception ex)
             {
@@ -459,9 +595,27 @@ namespace WishList.ViewModel.AdminViewModel.Dop
 
             try
             {
-                StatusMessage = $"Редактирование задачи: {SelectedTask.Title}";
-                MessageBox.Show($"Редактирование задачи: {SelectedTask.Title}", "Информация",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                IsEditMode = true;
+                // Создаем копию задачи для редактирования
+                EditingTask = new Task
+                {
+                    Id = SelectedTask.Task.Id,
+                    Title = SelectedTask.Task.Title,
+                    Description = SelectedTask.Task.Description,
+                    ClientId = SelectedTask.Task.ClientId,
+                    CategoryId = SelectedTask.Task.CategoryId,
+                    ManagerId = SelectedTask.Task.ManagerId,
+                    ProgrammerId = SelectedTask.Task.ProgrammerId,
+                    StatusId = SelectedTask.Task.StatusId,
+                    PriorityId = SelectedTask.Task.PriorityId,
+                    CreatedDate = SelectedTask.Task.CreatedDate,
+                    DueDate = SelectedTask.Task.DueDate,
+                    CompletedDate = SelectedTask.Task.CompletedDate,
+                    EstimatedHours = SelectedTask.Task.EstimatedHours,
+                    ActualHours = SelectedTask.Task.ActualHours
+                };
+                IsDialogOpen = true;
+                StatusMessage = $"Редактирование задачи: {SelectedTask.Task.Title}";
             }
             catch (Exception ex)
             {
@@ -476,7 +630,7 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             if (SelectedTask == null) return;
 
             var result = MessageBox.Show(
-                $"Вы уверены, что хотите удалить задачу \"{SelectedTask.Title}\"?",
+                $"Вы уверены, что хотите удалить задачу \"{SelectedTask.Task.Title}\"?",
                 "Подтверждение удаления",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
@@ -485,7 +639,7 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             {
                 try
                 {
-                    _tasksRepository.Delete(SelectedTask.Id);
+                    _tasksRepository.Delete(SelectedTask.Task.Id);
                     _tasksRepository.Save();
                     ExecuteLoadTasks(null);
                     StatusMessage = "Задача успешно удалена";
@@ -497,6 +651,82 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                         MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+        }
+
+        private void ExecuteSaveTask(object parameter)
+        {
+            try
+            {
+                if (EditingTask == null) return;
+
+                // Валидация
+                if (string.IsNullOrWhiteSpace(EditingTask.Title))
+                {
+                    MessageBox.Show("Заголовок задачи обязателен для заполнения", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (IsEditMode)
+                {
+                    // Обновление существующей задачи
+                    var existingTask = _tasksRepository.GetById(EditingTask.Id);
+                    if (existingTask != null)
+                    {
+                        existingTask.Title = EditingTask.Title;
+                        existingTask.Description = EditingTask.Description;
+                        existingTask.ClientId = EditingTask.ClientId;
+                        existingTask.CategoryId = EditingTask.CategoryId;
+                        existingTask.ManagerId = EditingTask.ManagerId;
+                        existingTask.ProgrammerId = EditingTask.ProgrammerId;
+                        existingTask.StatusId = EditingTask.StatusId;
+                        existingTask.PriorityId = EditingTask.PriorityId;
+                        existingTask.DueDate = EditingTask.DueDate;
+                        existingTask.CompletedDate = EditingTask.CompletedDate;
+                        existingTask.EstimatedHours = EditingTask.EstimatedHours;
+                        existingTask.ActualHours = EditingTask.ActualHours;
+
+                        _tasksRepository.Update(existingTask);
+                        StatusMessage = $"Задача \"{existingTask.Title}\" обновлена";
+                    }
+                }
+                else
+                {
+                    // Создание новой задачи
+                    // Создаем связанные сущности
+                    var taskProgress = new TaskProgress { ProgressPercentage = 0 };
+                    _progressRepository.Create(taskProgress);
+                    _progressRepository.Save();
+
+                    var workPlan = new WorkPlan { EstimatedHours = EditingTask.EstimatedHours ?? 0 };
+                    _workPlansRepository.Create(workPlan);
+                    _workPlansRepository.Save();
+
+                    EditingTask.TaskProgressId = taskProgress.Id;
+                    EditingTask.WorkPlansId = workPlan.Id;
+                    EditingTask.CreatedDate = DateTime.Now;
+
+                    _tasksRepository.Create(EditingTask);
+                    StatusMessage = $"Новая задача \"{EditingTask.Title}\" создана";
+                }
+
+                _tasksRepository.Save();
+                IsDialogOpen = false;
+                ExecuteLoadTasks(null);
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Ошибка сохранения задачи: {ex.Message}";
+                MessageBox.Show($"Ошибка сохранения задачи: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ExecuteCancelEdit(object parameter)
+        {
+            IsDialogOpen = false;
+            EditingTask = null;
+            StatusMessage = "Редактирование отменено";
         }
 
         private void ExecuteClearFilters(object parameter)
@@ -555,6 +785,7 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             FilterEndDate = new DateTime(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month));
         }
 
+
         #endregion
 
         #region Helper Methods
@@ -569,6 +800,7 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             // Загрузка статусов
             var statuses = _statusesRepository.GetAll().ToList();
             SelectableStatuses.Clear();
+            AllStatuses.Clear();
             foreach (var status in statuses)
             {
                 var selectable = new SelectableItem<TaskStatuss> { Item = status };
@@ -578,11 +810,13 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                     UpdateDisplayText();
                 };
                 SelectableStatuses.Add(selectable);
+                AllStatuses.Add(status);
             }
 
             // Загрузка приоритетов
             var priorities = _prioritiesRepository.GetAll().ToList();
             SelectablePriorities.Clear();
+            AllPriorities.Clear();
             foreach (var priority in priorities)
             {
                 var selectable = new SelectableItem<TaskPriority> { Item = priority };
@@ -592,11 +826,13 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                     UpdateDisplayText();
                 };
                 SelectablePriorities.Add(selectable);
+                AllPriorities.Add(priority);
             }
 
             // Загрузка менеджеров
             var managers = _employeesRepository.GetAll().Where(e => e.IsActive && e.Role.Name == "Manager").ToList();
             SelectableManagers.Clear();
+            AllManagers.Clear();
             foreach (var manager in managers)
             {
                 var selectable = new SelectableItem<Employee> { Item = manager };
@@ -606,11 +842,29 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                     UpdateDisplayText();
                 };
                 SelectableManagers.Add(selectable);
+                AllManagers.Add(manager);
+            }
+
+            // Загрузка программистов
+            var programmers = _employeesRepository.GetAll().Where(e => e.IsActive && e.Role.Name == "Programmer").ToList();
+            SelectableProgrammers.Clear();
+            AllProgrammers.Clear();
+            foreach (var programmer in programmers)
+            {
+                var selectable = new SelectableItem<Employee> { Item = programmer };
+                selectable.PropertyChanged += (s, e) =>
+                {
+                    TasksView?.Refresh();
+                    UpdateDisplayText();
+                };
+                SelectableProgrammers.Add(selectable);
+                AllProgrammers.Add(programmer);
             }
 
             // Загрузка клиентов
             var clients = _clientsRepository.GetAll().ToList();
             SelectableClients.Clear();
+            AllClients.Clear();
             foreach (var client in clients)
             {
                 var selectable = new SelectableItem<Client> { Item = client };
@@ -620,6 +874,23 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                     UpdateDisplayText();
                 };
                 SelectableClients.Add(selectable);
+                AllClients.Add(client);
+            }
+
+            // Загрузка категорий
+            var categories = _categoriesRepository.GetAll().ToList();
+            SelectableCategories.Clear();
+            AllCategories.Clear();
+            foreach (var category in categories)
+            {
+                var selectable = new SelectableItem<TaskCategory> { Item = category };
+                selectable.PropertyChanged += (s, e) =>
+                {
+                    TasksView?.Refresh();
+                    UpdateDisplayText();
+                };
+                SelectableCategories.Add(selectable);
+                AllCategories.Add(category);
             }
 
             // Инициализация текста
@@ -628,19 +899,15 @@ namespace WishList.ViewModel.AdminViewModel.Dop
 
         private void UpdateDisplayText()
         {
-            // Обновление текста для статусов
             var selectedStatuses = SelectableStatuses.Where(x => x.IsSelected).Select(x => x.Item.Name);
             SelectedStatusesText = selectedStatuses.Any() ? string.Join(", ", selectedStatuses) : "Выберите...";
 
-            // Обновление текста для приоритетов
             var selectedPriorities = SelectablePriorities.Where(x => x.IsSelected).Select(x => x.Item.Name);
             SelectedPrioritiesText = selectedPriorities.Any() ? string.Join(", ", selectedPriorities) : "Выберите...";
 
-            // Обновление текста для менеджеров
             var selectedManagers = SelectableManagers.Where(x => x.IsSelected).Select(x => x.Item.Name);
             SelectedManagersText = selectedManagers.Any() ? string.Join(", ", selectedManagers) : "Выберите...";
 
-            // Обновление текста для клиентов
             var selectedClients = SelectableClients.Where(x => x.IsSelected).Select(x => x.Item.CompanyName);
             SelectedClientsText = selectedClients.Any() ? string.Join(", ", selectedClients) : "Выберите...";
         }
@@ -648,18 +915,22 @@ namespace WishList.ViewModel.AdminViewModel.Dop
         private void UpdateFilteredTasks()
         {
             FilteredTasks.Clear();
-            foreach (var task in Tasks)
+
+            // Обновляем порядковые номера для отфильтрованных задач
+            int orderNumber = 1;
+            foreach (var taskWithOrder in Tasks.Where(t => FilterTasks(t)))
             {
-                FilteredTasks.Add(task);
+                taskWithOrder.OrderNumber = orderNumber++;
+                FilteredTasks.Add(taskWithOrder);
             }
             TasksView?.Refresh();
         }
 
         private bool FilterTasks(object obj)
         {
-            if (obj is not Task task) return false;
+            if (obj is not TaskWithOrder taskWithOrder) return false;
+            var task = taskWithOrder.Task;
 
-            // Фильтр по поисковому тексту
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
                 var searchLower = SearchText.ToLower();
@@ -671,32 +942,26 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                 if (!matches) return false;
             }
 
-            // Фильтр по статусу (множественный выбор)
             var selectedStatuses = SelectableStatuses.Where(x => x.IsSelected).Select(x => x.Item).ToList();
             if (selectedStatuses.Any() && !selectedStatuses.Any(s => s.Id == task.StatusId))
                 return false;
 
-            // Фильтр по приоритету (множественный выбор)
             var selectedPriorities = SelectablePriorities.Where(x => x.IsSelected).Select(x => x.Item).ToList();
             if (selectedPriorities.Any() && !selectedPriorities.Any(p => p.Id == task.PriorityId))
                 return false;
 
-            // Фильтр по менеджеру (множественный выбор)
             var selectedManagers = SelectableManagers.Where(x => x.IsSelected).Select(x => x.Item).ToList();
             if (selectedManagers.Any() && !selectedManagers.Any(m => m.Id == task.ManagerId))
                 return false;
 
-            // Фильтр по клиенту (множественный выбор)
             var selectedClients = SelectableClients.Where(x => x.IsSelected).Select(x => x.Item).ToList();
             if (selectedClients.Any() && !selectedClients.Any(c => c.Id == task.ClientId))
                 return false;
 
-            // Фильтр по дате начала
             if (FilterStartDate.HasValue && task.DueDate.HasValue &&
                 task.DueDate.Value.Date < FilterStartDate.Value.Date)
                 return false;
 
-            // Фильтр по дате окончания
             if (FilterEndDate.HasValue && task.DueDate.HasValue &&
                 task.DueDate.Value.Date > FilterEndDate.Value.Date)
                 return false;
