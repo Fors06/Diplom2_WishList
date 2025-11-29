@@ -26,14 +26,5 @@ namespace WishList.Model.Entity
 
         [Column("CreatedDate")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
-
-        //// Вычисляемые свойства
-        //[NotMapped]
-        //public string FormattedCreatedDate => CreatedDate.ToString("dd.MM.yyyy HH:mm");
-
-        //[NotMapped]
-        //public string ShortPlanDescription => PlanDescription.Length > 150
-        //    ? PlanDescription.Substring(0, 150) + "..."
-        //    : PlanDescription;
     }
 }

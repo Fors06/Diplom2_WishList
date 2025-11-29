@@ -34,7 +34,6 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Заголовок -->
             <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" CornerRadius="15,15,0,0" MouseDown="TitleBar_MouseDown">
                 <Grid Margin="15">
                     <Grid.ColumnDefinitions>

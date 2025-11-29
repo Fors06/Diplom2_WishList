@@ -4,9 +4,1199 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WishList.Views.ManagerView"
+        xmlns:behaviors="clr-namespace:WishList.Services.Manager"
         mc:Ignorable="d"
-        Title="ManagerWindow" Height="450" Width="800">
-    <Grid>
-        
+        WindowStyle="None"
+        WindowState="Maximized"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        AllowDrop="True"
+        PreviewDragOver="Window_PreviewDragOver"
+        Drop="Window_Drop">
+
+    <Window.Resources>
+        <Style x:Key="DraggableTabItemStyle" TargetType="TabItem">
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border Name="Border" 
+                    Background="Transparent" 
+                    BorderThickness="0" 
+                    Padding="{TemplateBinding Padding}"
+                    Margin="2,0"
+                    Cursor="Hand"
+                    ToolTip="Перетащите для изменения порядка. Перетащите за пределы вкладок для создания отдельного окна">
+                            <ContentPresenter x:Name="ContentSite"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        ContentSource="Header"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="Border" Property="CornerRadius" Value="6,6,0,0"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="False">
+                                <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource HoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="behaviors:TabItemDragDropBehavior.IsDragOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource LightAccentBrush}"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="Border" Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource BackgroundBrush}" UseLayoutRounding="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" 
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                MouseDown="Border_MouseDown">
+            <Grid Margin="20,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="👨‍💼" FontSize="20" Margin="0,0,10,0"/>
+                    <TextBlock Text="ПАНЕЛЬ МЕНЕДЖЕРА" 
+                              Foreground="{StaticResource TextBrush}" 
+                              FontSize="18" 
+                              FontWeight="Bold"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding CurrentDate}" 
+                              Foreground="{StaticResource TextSecondaryBrush}" 
+                              FontSize="12"
+                              Margin="0,0,15,0"/>
+
+                    <!-- Кнопка смены темы -->
+                    <Button Command="{Binding ToggleThemeCommand}"
+                            ToolTip="Сменить тему"
+                            Style="{StaticResource WindowControlButtonStyle}"
+                            Content="🌙"
+                            FontSize="12"
+                            Margin="0,0,10,0"
+                            Width="30" Height="30"/>
+
+                    <!-- Refresh Button -->
+                    <Button Command="{Binding RefreshCommand}"
+                            ToolTip="Обновить данные"
+                            Style="{StaticResource WindowControlButtonStyle}"
+                            Content="🔄"
+                            FontSize="12"
+                            Margin="0,0,10,0"
+                            Width="30" Height="30"/>
+
+                    <!-- Minimize Button -->
+                    <Button x:Name="MinimizeButton" 
+                            Style="{StaticResource WindowControlButtonStyle}"
+                            Content="─"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Click="MinimizeButton_Click"
+                            Margin="0,0,5,0"
+                            Width="30" Height="30"/>
+
+                    <!-- Maximize/Restore Button -->
+                    <Button x:Name="MaximizeButton" 
+                            Style="{StaticResource WindowControlButtonStyle}"
+                            Content="🗖"
+                            FontSize="12"
+                            Click="MaximizeButton_Click"
+                            Margin="0,0,5,0"
+                            Width="30" Height="30"/>
+
+                    <!-- Close Button -->
+                    <Button Style="{StaticResource CloseButtonStyle}" 
+                            Click="CloseButton_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Statistics Cards -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Disabled" 
+                      HorizontalScrollBarVisibility="Auto" 
+                      Padding="20,15" Background="Transparent"
+                      UseLayoutRounding="True">
+            <ItemsControl ItemsSource="{Binding StatisticsCards}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource StatCardStyle}" 
+                                MinWidth="200" MinHeight="80" 
+                                Width="220" Height="90"
+                                Background="{Binding Color, Converter={StaticResource StringToBrushConverter}}">
+                            <Border.Effect>
+                                <DropShadowEffect ShadowDepth="3" Opacity="0.15" BlurRadius="10" Direction="270"/>
+                            </Border.Effect>
+                            <Grid Margin="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" 
+                                           Text="{Binding Icon}" 
+                                           Style="{StaticResource IconTextStyle}"
+                                           FontSize="20"
+                                           Margin="0,0,12,0"/>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Value}" 
+                                               FontSize="18" 
+                                               FontWeight="Bold" 
+                                               Foreground="White"/>
+                                    <TextBlock Text="{Binding Title}" 
+                                               FontSize="11" 
+                                               Foreground="White" 
+                                               Opacity="0.9"
+                                               Margin="0,2,0,0"/>
+                                    <TextBlock Text="{Binding Description}" 
+                                               FontSize="9" 
+                                               Foreground="White" 
+                                               Opacity="0.7"
+                                               Margin="0,1,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Main Content - TabControl -->
+        <Border Grid.Row="2" Background="{StaticResource PrimaryBrush}" 
+                Margin="12,8,12,12" CornerRadius="8">
+            <Border.Effect>
+                <DropShadowEffect ShadowDepth="4" Opacity="0.1" BlurRadius="12"/>
+            </Border.Effect>
+
+            <TabControl x:Name="MainTabControl"
+                        behaviors:TabItemDragDropBehavior.IsDragDropEnabled="True"
+                        Background="Transparent" 
+                        BorderThickness="0"
+                        SelectedIndex="{Binding SelectedTabIndex}"
+                        FontSize="13" 
+                        FontWeight="SemiBold"
+                        AllowDrop="True"
+                        UseLayoutRounding="True">
+
+                <!-- Клиенты Tab -->
+                <TabItem Header="👥 Клиенты" Style="{StaticResource DraggableTabItemStyle}">
+                    <Grid Margin="8" UseLayoutRounding="True">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Адаптивная панель управления клиентами -->
+                        <Grid Grid.Row="0" Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0"
+                                      Text="Управление клиентами" 
+                                      Foreground="{StaticResource TextBrush}"
+                                      FontSize="16"
+                                      FontWeight="Bold"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,16,0"/>
+
+                            <!-- Контейнер для кнопок с адаптивным расположением -->
+                            <StackPanel Grid.Column="2" 
+                                       Orientation="Horizontal"
+                                       HorizontalAlignment="Right">
+                                <Button Content="➕ Добавить клиента" 
+                                        Command="{Binding AddClientCommand}"
+                                        Style="{StaticResource ModernButton}"
+                                        Background="{StaticResource SuccessBrush}"
+                                        Margin="0,0,8,0"
+                                        MinWidth="120"
+                                        Padding="12,8"/>
+
+                                <Button Content="🔄 Обновить" 
+                                        Command="{Binding RefreshClientsCommand}"
+                                        Style="{StaticResource ModernButton}"
+                                        Background="{StaticResource WarningBrush}"
+                                        MinWidth="100"
+                                        Padding="12,8"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Поиск клиентов -->
+                        <Border Grid.Row="1" Background="{StaticResource SecondaryBrush}" CornerRadius="4" Padding="8" Margin="0,0,0,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="🔍" FontSize="13" VerticalAlignment="Center" Margin="4,0,8,0"/>
+
+                                <TextBox Grid.Column="1"
+                                        Style="{StaticResource ModernTextBox}" 
+                                        Tag="Поиск по компании, контактному лицу, email или телефону..."
+                                        Text="{Binding ClientSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                        MinWidth="200"
+                                        Margin="0,0,8,0"/>
+
+                                <TextBlock Grid.Column="2"
+                                          Text="{Binding FilteredClients.Count, StringFormat={}Найдено: {0}}"
+                                          Foreground="{StaticResource TextSecondaryBrush}"
+                                          FontSize="11"
+                                          VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- АДАПТИВНАЯ ФОРМА КЛИЕНТА -->
+                        <Border Grid.Row="2" 
+                                Background="{StaticResource SecondaryBrush}" 
+                                CornerRadius="4" 
+                                Padding="12" 
+                                Margin="0,0,0,12" 
+                                BorderThickness="1" 
+                                BorderBrush="{StaticResource BorderBrush}"
+                                Visibility="{Binding IsClientFormVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Первая строка формы -->
+                                <UniformGrid Grid.Row="0" Columns="2" Margin="0,0,0,8">
+                                    <StackPanel Margin="0,0,8,0">
+                                        <TextBlock Text="Название компании *" 
+                                                  Foreground="{StaticResource TextBrush}"
+                                                  FontWeight="SemiBold" 
+                                                  Margin="0,0,0,4"/>
+                                        <TextBox Style="{StaticResource ModernTextBox}" 
+                                                Tag="Введите название компании"
+                                                Text="{Binding CurrentClient.CompanyName, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Margin="8,0,0,0">
+                                        <TextBlock Text="Контактное лицо" 
+                                                  Foreground="{StaticResource TextBrush}"
+                                                  FontWeight="SemiBold" 
+                                                  Margin="0,0,0,4"/>
+                                        <TextBox Style="{StaticResource ModernTextBox}"
+                                                Tag="Введите ФИО контактного лица"
+                                                Text="{Binding CurrentClient.ContactPerson, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+                                </UniformGrid>
+
+                                <!-- Вторая строка формы -->
+                                <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,8">
+                                    <StackPanel Margin="0,0,8,0">
+                                        <TextBlock Text="Email *" 
+                                                  Foreground="{StaticResource TextBrush}"
+                                                  FontWeight="SemiBold" 
+                                                  Margin="0,0,0,4"/>
+                                        <TextBox Style="{StaticResource ModernTextBox}"
+                                                Tag="Введите email"
+                                                Text="{Binding CurrentClient.Email, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Margin="4,0,4,0">
+                                        <TextBlock Text="Телефон" 
+                                                  Foreground="{StaticResource TextBrush}"
+                                                  FontWeight="SemiBold" 
+                                                  Margin="0,0,0,4"/>
+                                        <TextBox Style="{StaticResource ModernTextBox}"
+                                                Tag="Введите телефон"
+                                                Text="{Binding CurrentClient.Phone, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Margin="8,0,0,0">
+                                        <TextBlock Text="Адрес" 
+                                                  Foreground="{StaticResource TextBrush}"
+                                                  FontWeight="SemiBold" 
+                                                  Margin="0,0,0,4"/>
+                                        <TextBox Style="{StaticResource ModernTextBox}"
+                                                Tag="Введите адрес"
+                                                Text="{Binding CurrentClient.Address, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+                                </UniformGrid>
+
+                                <!-- Третья строка - кнопки действий -->
+                                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Content="💾 Сохранить" 
+                                            Command="{Binding SaveClientCommand}"
+                                            Style="{StaticResource ModernButton}"
+                                            Background="{StaticResource SuccessBrush}"
+                                            Margin="0,0,8,0"
+                                            MinWidth="100"
+                                            Padding="12,8"/>
+
+                                    <Button Content="❌ Отмена" 
+                                            Command="{Binding CancelClientCommand}"
+                                            Style="{StaticResource ModernButton}"
+                                            Background="{StaticResource ErrorBrush}"
+                                            MinWidth="80"
+                                            Padding="12,8"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Таблица клиентов -->
+                        <DataGrid Grid.Row="3" 
+                                 ItemsSource="{Binding FilteredClients}"
+                                 Style="{StaticResource ModernDataGrid}"
+                                 ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
+                                 RowStyle="{StaticResource ModernDataGridRow}"
+                                 CellStyle="{StaticResource ModernDataGridCell}"
+                                 AutoGenerateColumns="False"
+                                 VerticalAlignment="Stretch"
+                                 UseLayoutRounding="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="№" Binding="{Binding OrderNumber}" Width="60"/>
+                                <DataGridTextColumn Header="Компания" Binding="{Binding CompanyName}" Width="*" MinWidth="150"/>
+                                <DataGridTextColumn Header="Контактное лицо" Binding="{Binding ContactPerson}" Width="*" MinWidth="120"/>
+                                <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="*" MinWidth="150"/>
+                                <DataGridTextColumn Header="Телефон" Binding="{Binding Phone}" Width="*" MinWidth="100"/>
+                                <DataGridTextColumn Header="Адрес" Binding="{Binding Address}" Width="*" MinWidth="120"/>
+                                <DataGridTextColumn Header="Дата регистрации" 
+                                                   Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy HH:mm}" 
+                                                   Width="*" MinWidth="120"/>
+                                <DataGridTemplateColumn Header="Действия" Width="*" MinWidth="100">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                <Button Content="✏️" 
+                                                        Command="{Binding DataContext.EditClientCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                        CommandParameter="{Binding Id}"
+                                                        Style="{StaticResource TextButton}"
+                                                        ToolTip="Редактировать"
+                                                        Padding="6,3"/>
+
+                                                <Button Content="🗑️" 
+                                                        Command="{Binding DataContext.DeleteClientCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                        CommandParameter="{Binding Id}"
+                                                        Style="{StaticResource TextButton}"
+                                                        Margin="4,0,0,0"
+                                                        Foreground="{StaticResource ErrorBrush}"
+                                                        ToolTip="Удалить"
+                                                        Padding="6,3"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <!-- Заказы Tab -->
+                <TabItem Header="📦 Заказы" Style="{StaticResource DraggableTabItemStyle}">
+                    <Grid Margin="8" UseLayoutRounding="True">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Адаптивная панель управления заказами -->
+                        <Grid Grid.Row="0" Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0"
+                                      Text="Управление заказами" 
+                                      Foreground="{StaticResource TextBrush}"
+                                      FontSize="16"
+                                      FontWeight="Bold"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,16,0"/>
+
+                            <!-- Контейнер для кнопок с адаптивным расположением -->
+                            <StackPanel Grid.Column="2" 
+                                       Orientation="Horizontal"
+                                       HorizontalAlignment="Right">
+                                <Button Content="➕ Создать заказ" 
+                                        Command="{Binding AddOrderCommand}"
+                                        Style="{StaticResource ModernButton}"
+                                        Background="{StaticResource AccentBrush}"
+                                        Margin="0,0,8,0"
+                                        MinWidth="120"
+                                        Padding="12,8"/>
+
+                                <Button Content="🔄 Обновить" 
+                                        Command="{Binding RefreshOrdersCommand}"
+                                        Style="{StaticResource ModernButton}"
+                                        Background="{StaticResource WarningBrush}"
+                                        Margin="0,0,8,0"
+                                        MinWidth="100"
+                                        Padding="12,8"/>
+
+                                <Button Content="📋 План работ" 
+                                        Command="{Binding ShowWorkPlanCommand}"
+                                        Style="{StaticResource ModernButton}"
+                                        Background="{StaticResource InfoBrush}"
+                                        MinWidth="100"
+                                        Padding="12,8"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Поиск заказов -->
+                        <Border Grid.Row="1" Background="{StaticResource SecondaryBrush}" CornerRadius="4" Padding="8" Margin="0,0,0,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="🔍" FontSize="13" VerticalAlignment="Center" Margin="4,0,8,0"/>
+
+                                <TextBox Grid.Column="1"
+                                        Style="{StaticResource ModernTextBox}" 
+                                        Tag="Поиск по названию, клиенту, категории или приоритету..."
+                                        Text="{Binding OrderSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                        MinWidth="200"
+                                        Margin="0,0,8,0"/>
+
+                                <TextBlock Grid.Column="2"
+                                          Text="{Binding FilteredOrders.Count, StringFormat={}Найдено: {0}}"
+                                          Foreground="{StaticResource TextSecondaryBrush}"
+                                          FontSize="11"
+                                          VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- АДАПТИВНАЯ ФОРМА ЗАКАЗА -->
+                        <Border Grid.Row="2" 
+        Background="{StaticResource SecondaryBrush}" 
+        CornerRadius="4" 
+        Padding="12" 
+        Margin="0,0,0,12" 
+        BorderThickness="1" 
+        BorderBrush="{StaticResource BorderBrush}"
+        Visibility="{Binding IsOrderFormVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Первая строка формы - основные поля -->
+                                <UniformGrid Grid.Row="0" Columns="4" Margin="0,0,0,8">
+                                    <!-- Клиент -->
+                                    <StackPanel Margin="0,0,8,0">
+                                        <TextBlock Text="Клиент *" 
+                          Foreground="{StaticResource TextBrush}"
+                          FontWeight="SemiBold" 
+                          Margin="0,0,0,4"/>
+                                        <ComboBox ItemsSource="{Binding AllClients}"
+                         DisplayMemberPath="CompanyName"
+                         SelectedValuePath="Id"
+                         SelectedValue="{Binding CurrentOrder.ClientId}"
+                         Style="{StaticResource ModernComboBox}"/>
+                                    </StackPanel>
+
+                                    <!-- Категория -->
+                                    <StackPanel Margin="4,0,4,0">
+                                        <TextBlock Text="Категория *" 
+                          Foreground="{StaticResource TextBrush}"
+                          FontWeight="SemiBold" 
+                          Margin="0,0,0,4"/>
+                                        <ComboBox ItemsSource="{Binding AllCategories}"
+                         DisplayMemberPath="Name"
+                         SelectedValuePath="Id"
+                         SelectedValue="{Binding CurrentOrder.CategoryId}"
+                         Style="{StaticResource ModernComboBox}"/>
+                                    </StackPanel>
+
+                                    <!-- Приоритет -->
+                                    <StackPanel Margin="4,0,4,0">
+                                        <TextBlock Text="Приоритет *" 
+                          Foreground="{StaticResource TextBrush}"
+                          FontWeight="SemiBold" 
+                          Margin="0,0,0,4"/>
+                                        <ComboBox ItemsSource="{Binding AllPriorities}"
+                         DisplayMemberPath="Name"
+                         SelectedValuePath="Id"
+                         SelectedValue="{Binding CurrentOrder.PriorityId}"
+                         Style="{StaticResource ModernComboBox}"/>
+                                    </StackPanel>
+
+                                    <!-- Статус -->
+                                    <StackPanel Margin="8,0,0,0">
+                                        <TextBlock Text="Статус *" 
+                          Foreground="{StaticResource TextBrush}"
+                          FontWeight="SemiBold" 
+                          Margin="0,0,0,4"/>
+                                        <ComboBox ItemsSource="{Binding AllStatuses}"
+                         DisplayMemberPath="Name"
+                         SelectedValuePath="Id"
+                         SelectedValue="{Binding CurrentOrder.StatusId}"
+                         Style="{StaticResource ModernComboBox}"/>
+                                    </StackPanel>
+                                </UniformGrid>
+
+                                <!-- Вторая строка формы - ответственные лица -->
+                                <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,8">
+                                    <!-- Менеджер -->
+                                    <StackPanel Margin="0,0,8,0">
+                                        <TextBlock Text="Менеджер *" 
+                          Foreground="{StaticResource TextBrush}"
+                          FontWeight="SemiBold" 
+                          Margin="0,0,0,4"/>
+                                        <ComboBox ItemsSource="{Binding AllManagers}"
+                         DisplayMemberPath="Name"
+                         SelectedValuePath="Id"
+                         SelectedValue="{Binding CurrentOrder.ManagerId}"
+                         Style="{StaticResource ModernComboBox}"/>
+                                    </StackPanel>
+
+                                    <!-- Программист -->
+                                    <StackPanel Margin="4,0,4,0">
+                                        <TextBlock Text="Программист" 
+                          Foreground="{StaticResource TextBrush}"
+                          FontWeight="SemiBold" 
+                          Margin="0,0,0,4"/>
+                                        <ComboBox ItemsSource="{Binding AllProgrammers}"
+                         DisplayMemberPath="Name"
+                         SelectedValuePath="Id"
+                         SelectedValue="{Binding CurrentOrder.ProgrammerId}"
+                         Style="{StaticResource ModernComboBox}"/>
+                                    </StackPanel>
+
+                                    <!-- Часы -->
+                                    <StackPanel Margin="8,0,0,0">
+                                        <TextBlock Text="Плановые часы *" 
+                          Foreground="{StaticResource TextBrush}"
+                          FontWeight="SemiBold" 
+                          Margin="0,0,0,4"/>
+                                        <TextBox Style="{StaticResource ModernTextBox}"
+                        Tag="Введите количество часов"
+                        Text="{Binding CurrentOrder.EstimatedHours, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+                                </UniformGrid>
+
+                                <!-- Третья строка формы - название и даты -->
+                                <Grid Grid.Row="2" Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Название заказа -->
+                                    <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <TextBlock Text="Название заказа *" 
+                          Foreground="{StaticResource TextBrush}"
+                          FontWeight="SemiBold" 
+                          Margin="0,0,0,4"/>
+                                        <TextBox Style="{StaticResource ModernTextBox}"
+                        Tag="Введите название заказа"
+                        Text="{Binding CurrentOrder.Title, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+
+                                    <!-- Дата выполнения -->
+                                    <StackPanel Grid.Column="1" Width="180" Margin="0,0,12,0">
+                                        <TextBlock Text="Срок выполнения" 
+                          Foreground="{StaticResource TextBrush}"
+                          FontWeight="SemiBold" 
+                          Margin="0,0,0,4"/>
+                                        <DatePicker Style="{StaticResource ModernDatePicker}"
+                           SelectedDate="{Binding CurrentOrder.DueDate}"/>
+                                    </StackPanel>
+
+                                    <!-- Дата завершения -->
+                                    <StackPanel Grid.Column="2" Width="180">
+                                        <TextBlock Text="Дата завершения" 
+                          Foreground="{StaticResource TextBrush}"
+                          FontWeight="SemiBold" 
+                          Margin="0,0,0,4"/>
+                                        <DatePicker Style="{StaticResource ModernDatePicker}"
+                           SelectedDate="{Binding CurrentOrder.CompletedDate}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Четвертая строка формы - описание -->
+                                <StackPanel Grid.Row="3" Margin="0,0,0,8">
+                                    <TextBlock Text="Описание" 
+                      Foreground="{StaticResource TextBrush}"
+                      FontWeight="SemiBold" 
+                      Margin="0,0,0,4"/>
+                                    <TextBox Style="{StaticResource ModernTextBox}"
+                    Tag="Введите описание заказа"
+                    Text="{Binding CurrentOrder.Description, UpdateSourceTrigger=PropertyChanged}"
+                    Height="80"
+                    TextWrapping="Wrap"
+                    AcceptsReturn="True"
+                    VerticalScrollBarVisibility="Auto"/>
+                                </StackPanel>
+
+                                <!-- Пятая строка - кнопки действий -->
+                                <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Content="💾 Сохранить" 
+                    Command="{Binding SaveOrderCommand}"
+                    Style="{StaticResource ModernButton}"
+                    Background="{StaticResource SuccessBrush}"
+                    Margin="0,0,8,0"
+                    MinWidth="100"
+                    Padding="12,8"/>
+
+                                    <Button Content="❌ Отмена" 
+                    Command="{Binding CancelOrderCommand}"
+                    Style="{StaticResource ModernButton}"
+                    Background="{StaticResource ErrorBrush}"
+                    MinWidth="80"
+                    Padding="12,8"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Таблица заказов -->
+                        <DataGrid Grid.Row="3" 
+                                     ItemsSource="{Binding FilteredOrders}"
+                                     SelectedItem="{Binding SelectedOrder}"
+                                     Style="{StaticResource ModernDataGrid}"
+                                     ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
+                                     RowStyle="{StaticResource ModernDataGridRow}"
+                                     CellStyle="{StaticResource ModernDataGridCell}"
+                                     AutoGenerateColumns="False"
+                                     VerticalAlignment="Stretch"
+                                     UseLayoutRounding="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="№" Binding="{Binding OrderNumber}" Width="60"/>
+                                <DataGridTextColumn Header="Название" Binding="{Binding Title}" Width="*" MinWidth="150"/>
+                                <DataGridTextColumn Header="Клиент" Binding="{Binding Client.CompanyName}" Width="*" MinWidth="120"/>
+                                <DataGridTextColumn Header="Категория" Binding="{Binding Category.Name}" Width="*" MinWidth="100"/>
+                                <DataGridTextColumn Header="Приоритет" Binding="{Binding Priority.Name}" Width="*" MinWidth="100"/>
+                                <DataGridTextColumn Header="Статус" Binding="{Binding Status.Name}" Width="*" MinWidth="100"/>
+                                <DataGridTextColumn Header="Срок выполнения" 
+                                                       Binding="{Binding DueDate, StringFormat=dd.MM.yyyy}" 
+                                                       Width="*" MinWidth="110"/>
+                                <DataGridTextColumn Header="Дата создания" 
+                                                       Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy HH:mm}" 
+                                                       Width="*" MinWidth="120"/>
+                                <DataGridTemplateColumn Header="Действия" Width="*" MinWidth="100">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                <Button Content="✏️" 
+                                                            Command="{Binding DataContext.EditOrderCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding Id}"
+                                                            Style="{StaticResource TextButton}"
+                                                            ToolTip="Редактировать"
+                                                            Padding="6,3"/>
+
+                                                <Button Content="🗑️" 
+                                                            Command="{Binding DataContext.DeleteOrderCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding Id}"
+                                                            Style="{StaticResource TextButton}"
+                                                            Margin="4,0,0,0"
+                                                            Foreground="{StaticResource ErrorBrush}"
+                                                            ToolTip="Удалить"
+                                                            Padding="6,3"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <!-- Планы работ Tab -->
+                <TabItem Header="📋 Планы работ" Style="{StaticResource DraggableTabItemStyle}">
+                    <Grid Margin="8" UseLayoutRounding="True">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Адаптивная панель управления планами работ -->
+                        <Grid Grid.Row="0" Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0"
+                                      Text="Управление планами работ" 
+                                      Foreground="{StaticResource TextBrush}"
+                                      FontSize="16"
+                                      FontWeight="Bold"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,16,0"/>
+
+                            <!-- Контейнер для кнопок с адаптивным расположением -->
+                            <StackPanel Grid.Column="2" 
+                                       Orientation="Horizontal"
+                                       HorizontalAlignment="Right">
+                                <Button Content="➕ Создать план" 
+                                        Command="{Binding AddWorkPlanCommand}"
+                                        Style="{StaticResource ModernButton}"
+                                        Background="{StaticResource SuccessBrush}"
+                                        Margin="0,0,8,0"
+                                        MinWidth="120"
+                                        Padding="12,8"/>
+
+                                <Button Content="🔄 Обновить" 
+                                        Command="{Binding RefreshWorkPlansCommand}"
+                                        Style="{StaticResource ModernButton}"
+                                        Background="{StaticResource WarningBrush}"
+                                        MinWidth="100"
+                                        Padding="12,8"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Поиск планов работ -->
+                        <Border Grid.Row="1" Background="{StaticResource SecondaryBrush}" CornerRadius="4" Padding="8" Margin="0,0,0,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="🔍" FontSize="13" VerticalAlignment="Center" Margin="4,0,8,0"/>
+
+                                <TextBox Grid.Column="1"
+                                        Style="{StaticResource ModernTextBox}" 
+                                        Tag="Поиск по названию или плану действий..."
+                                        Text="{Binding WorkPlanSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                        MinWidth="200"
+                                        Margin="0,0,8,0"/>
+
+                                <TextBlock Grid.Column="2"
+                                          Text="{Binding FilteredWorkPlans.Count, StringFormat={}Найдено: {0}}"
+                                          Foreground="{StaticResource TextSecondaryBrush}"
+                                          FontSize="11"
+                                          VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- АДАПТИВНАЯ ФОРМА ПЛАНА РАБОТ -->
+                        <Border Grid.Row="2" 
+                                Background="{StaticResource SecondaryBrush}" 
+                                CornerRadius="4" 
+                                Padding="12" 
+                                Margin="0,0,0,12" 
+                                BorderThickness="1" 
+                                BorderBrush="{StaticResource BorderBrush}"
+                                Visibility="{Binding IsWorkPlanFormVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Первая строка формы -->
+                                <Grid Grid.Row="0" Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <TextBlock Text="Описание плана *" 
+                                                  Foreground="{StaticResource TextBrush}"
+                                                  FontWeight="SemiBold" 
+                                                  Margin="0,0,0,4"/>
+                                        <TextBox Style="{StaticResource ModernTextBox}"
+                                                Tag="Введите описание плана работ"
+                                                Text="{Binding CurrentWorkPlan.PlanDescription, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Width="120">
+                                        <TextBlock Text="Часы *" 
+                                                  Foreground="{StaticResource TextBrush}"
+                                                  FontWeight="SemiBold" 
+                                                  Margin="0,0,0,4"/>
+                                        <TextBox Style="{StaticResource ModernTextBox}"
+                                                Tag="Часы"
+                                                Text="{Binding CurrentWorkPlan.EstimatedHours, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Вторая строка формы - шаги тестирования -->
+                                <StackPanel Grid.Row="1" Margin="0,0,0,8">
+                                    <TextBlock Text="Шаги тестирования" 
+                                              Foreground="{StaticResource TextBrush}"
+                                              FontWeight="SemiBold" 
+                                              Margin="0,0,0,4"/>
+                                    <TextBox Style="{StaticResource ModernTextBox}"
+                                            Tag="Опишите шаги тестирования..."
+                                            Text="{Binding CurrentWorkPlan.TestSteps, UpdateSourceTrigger=PropertyChanged}"
+                                            Height="80"
+                                            TextWrapping="Wrap"
+                                            AcceptsReturn="True"
+                                            VerticalScrollBarVisibility="Auto"/>
+                                </StackPanel>
+
+                                <!-- Третья строка - дополнительные поля -->
+                                <UniformGrid Grid.Row="2" Columns="3" Margin="0,0,0,8">
+                                    <StackPanel Margin="0,0,8,0">
+                                        <TextBlock Text="Тип плана" 
+                                                  Foreground="{StaticResource TextBrush}"
+                                                  FontWeight="SemiBold" 
+                                                  Margin="0,0,0,4"/>
+                                        <ComboBox ItemsSource="{Binding AllWorkPlanTypes}"
+                                                 DisplayMemberPath="Name"
+                                                 SelectedValuePath="Id"
+                                                 SelectedValue="{Binding CurrentWorkPlan.TypeId}"
+                                                 Style="{StaticResource ModernComboBox}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Margin="4,0,4,0">
+                                        <TextBlock Text="Сложность" 
+                                                  Foreground="{StaticResource TextBrush}"
+                                                  FontWeight="SemiBold" 
+                                                  Margin="0,0,0,4"/>
+                                        <ComboBox ItemsSource="{Binding AllComplexities}"
+                                                 DisplayMemberPath="Name"
+                                                 SelectedValuePath="Id"
+                                                 SelectedValue="{Binding CurrentWorkPlan.ComplexityId}"
+                                                 Style="{StaticResource ModernComboBox}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Margin="8,0,0,0">
+                                        <TextBlock Text="Статус" 
+                                                  Foreground="{StaticResource TextBrush}"
+                                                  FontWeight="SemiBold" 
+                                                  Margin="0,0,0,4"/>
+                                        <ComboBox ItemsSource="{Binding AllWorkPlanStatuses}"
+                                                 DisplayMemberPath="Name"
+                                                 SelectedValuePath="Id"
+                                                 SelectedValue="{Binding CurrentWorkPlan.StatusId}"
+                                                 Style="{StaticResource ModernComboBox}"/>
+                                    </StackPanel>
+                                </UniformGrid>
+
+                                <!-- Четвертая строка - кнопки действий -->
+                                <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Content="💾 Сохранить" 
+                                            Command="{Binding SaveWorkPlanCommand}"
+                                            Style="{StaticResource ModernButton}"
+                                            Background="{StaticResource SuccessBrush}"
+                                            Margin="0,0,8,0"
+                                            MinWidth="100"
+                                            Padding="12,8"/>
+
+                                    <Button Content="❌ Отмена" 
+                                            Command="{Binding CancelWorkPlanCommand}"
+                                            Style="{StaticResource ModernButton}"
+                                            Background="{StaticResource ErrorBrush}"
+                                            MinWidth="80"
+                                            Padding="12,8"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Таблица планов работ -->
+                        <DataGrid Grid.Row="3" 
+                                 ItemsSource="{Binding FilteredWorkPlans}"
+                                 Style="{StaticResource ModernDataGrid}"
+                                 ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
+                                 RowStyle="{StaticResource ModernDataGridRow}"
+                                 CellStyle="{StaticResource ModernDataGridCell}"
+                                 AutoGenerateColumns="False"
+                                 VerticalAlignment="Stretch"
+                                 UseLayoutRounding="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="№" Binding="{Binding OrderNumber}" Width="60"/>
+                                <DataGridTextColumn Header="Описание" Binding="{Binding PlanDescription}" Width="*" MinWidth="200"/>
+                                <DataGridTextColumn Header="Шаги плана" Binding="{Binding TestSteps}" Width="*" MinWidth="150"/>
+                                <DataGridTextColumn Header="Часы" Binding="{Binding EstimatedHours}" Width="*" MinWidth="80"/>
+                                <DataGridTextColumn Header="Дата создания" 
+                                                   Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy HH:mm}" 
+                                                   Width="*" MinWidth="120"/>
+                                <DataGridTemplateColumn Header="Действия" Width="*" MinWidth="100">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                <Button Content="✏️" 
+                                                        Command="{Binding DataContext.EditWorkPlanCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                        CommandParameter="{Binding Id}"
+                                                        Style="{StaticResource TextButton}"
+                                                        ToolTip="Редактировать"
+                                                        Padding="6,3"/>
+
+                                                <Button Content="🗑️" 
+                                                        Command="{Binding DataContext.DeleteWorkPlanCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                        CommandParameter="{Binding Id}"
+                                                        Style="{StaticResource TextButton}"
+                                                        Margin="4,0,0,0"
+                                                        Foreground="{StaticResource ErrorBrush}"
+                                                        ToolTip="Удалить"
+                                                        Padding="6,3"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Border>
+
+        <!-- Status Bar -->
+        <StatusBar Grid.Row="3" Background="{StaticResource PrimaryBrush}" 
+                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"
+                   UseLayoutRounding="True">
+            <StatusBarItem>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding StatusMessage}" 
+                              Foreground="{StaticResource TextSecondaryBrush}" 
+                              FontSize="11"/>
+                    <TextBlock Text=" • Перетаскивайте вкладки для изменения порядка" 
+                              Foreground="{StaticResource TextSecondaryBrush}" 
+                              FontSize="11"
+                              Opacity="0.7"
+                              Margin="10,0,0,0"/>
+                </StackPanel>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+                    <TextBlock Text="🔄" FontSize="10" Margin="0,0,5,0"/>
+                    <ProgressBar Style="{StaticResource ModernProgressBar}"
+                               Width="120" Height="6"
+                               IsIndeterminate="{Binding IsLoading}" 
+                               Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                </StackPanel>
+            </StatusBarItem>
+        </StatusBar>
+
+        <!-- ДИАЛОГ ПЛАНОВ РАБОТ -->
+        <Border Grid.Row="0" Grid.RowSpan="4"
+   Background="#CC000000"
+   Visibility="{Binding IsWorkPlanDialogOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Border Background="{StaticResource CardBrush}"
+       CornerRadius="8"
+       Padding="20"
+       Width="800"
+       Height="600"
+       VerticalAlignment="Center"
+       HorizontalAlignment="Center"
+       BorderBrush="{StaticResource BorderBrush}"
+       BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                        <RowDefinition Height="Auto" MinHeight="322.4"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+                        <TextBlock Text="📋 ПЛАН РАБОТ" 
+                     Style="{StaticResource TitleTextStyle}"
+                     FontSize="18"/>
+                        <TextBlock Text="{Binding SelectedOrder.Title, StringFormat=' - {0}'}"
+                     Style="{StaticResource TitleTextStyle}"
+                     FontSize="18"
+                     Foreground="{StaticResource AccentBrush}"
+                     Margin="5,0,0,0"/>
+                    </StackPanel>
+
+                    <!-- Панель управления планами -->
+                    <Border Grid.Row="1" Background="{StaticResource SecondaryBrush}" 
+               CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="➕ Добавить план" 
+                       Command="{Binding AddWorkPlanInDialogCommand}"
+                       Style="{StaticResource ModernButton}"
+                       Background="{StaticResource SuccessBrush}"
+                       Margin="0,0,10,0"
+                       Padding="10,6"/>
+
+                            <TextBlock Text="{Binding WorkPlansForDialog.Count, StringFormat={}Планов: {0}}"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         FontSize="12"
+                         VerticalAlignment="Center"
+                         Margin="10,0,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Таблица планов работ -->
+                    <DataGrid Grid.Row="2" 
+                ItemsSource="{Binding WorkPlansForDialog}"
+                SelectedItem="{Binding SelectedWorkPlan}"
+                Style="{StaticResource ModernDataGrid}"
+                ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
+                RowStyle="{StaticResource ModernDataGridRow}"
+                CellStyle="{StaticResource ModernDataGridCell}"
+                AutoGenerateColumns="False"
+                Margin="0,0,0,10">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="№" Binding="{Binding OrderNumber}" Width="50"/>
+                            <DataGridTextColumn Header="Описание" Binding="{Binding PlanDescription}" Width="*" MinWidth="200"/>
+                            <DataGridTextColumn Header="Тип" Binding="{Binding Type}" Width="120"/>
+                            <DataGridTextColumn Header="Часы" Binding="{Binding EstimatedHours}" Width="80"/>
+                            <DataGridTextColumn Header="Дата создания" 
+                                  Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy}" 
+                                  Width="110"/>
+                            <DataGridTemplateColumn Header="Действия" Width="120">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button Content="✏️" 
+                                       Command="{Binding DataContext.EditWorkPlanInDialogCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                       CommandParameter="{Binding Id}"
+                                       Style="{StaticResource TextButton}"
+                                       ToolTip="Редактировать"
+                                       Padding="6,3"/>
+
+                                            <Button Content="🗑️" 
+                                       Command="{Binding DataContext.DeleteWorkPlanInDialogCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                       CommandParameter="{Binding Id}"
+                                       Style="{StaticResource TextButton}"
+                                       Margin="4,0,0,0"
+                                       Foreground="{StaticResource ErrorBrush}"
+                                       ToolTip="Удалить"
+                                       Padding="6,3"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Форма плана работ -->
+                    <Border Grid.Row="3" 
+                           Background="{StaticResource SecondaryBrush}" 
+                           CornerRadius="4" 
+                           Padding="12" 
+                           BorderThickness="1" 
+                           BorderBrush="{StaticResource BorderBrush}"
+                           Visibility="{Binding IsWorkPlanFormVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,10,0,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto" MinHeight="167.2"/>
+                                <RowDefinition Height="Auto" MinHeight="49.6"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Первая строка -->
+                            <Grid Grid.Row="0" Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                    <TextBlock Text="Название плана *" 
+                                 Foreground="{StaticResource TextBrush}"
+                                 FontWeight="SemiBold" 
+                                 Margin="0,0,0,4"/>
+                                    <TextBox Style="{StaticResource ModernTextBox}"
+                               Tag="Введите название плана работ"
+                               Text="{Binding CurrentWorkPlan.PlanDescription, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Width="120">
+                                    <TextBlock Text="Часы *" 
+                                 Foreground="{StaticResource TextBrush}"
+                                 FontWeight="SemiBold" 
+                                 Margin="0,0,0,4"/>
+                                    <TextBox Style="{StaticResource ModernTextBox}"
+                               Tag="Часы"
+                               Text="{Binding CurrentWorkPlan.EstimatedHours, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Вторая строка -->
+                            <StackPanel Grid.Row="1" Margin="0,10,0,10">
+                                <TextBlock Text="План действий" 
+                             Foreground="{StaticResource TextBrush}"
+                             FontWeight="SemiBold" 
+                             Margin="0,0,0,4"/>
+                                <TextBox Style="{StaticResource ModernTextBox}"
+                           Tag="Опишите план действия..."
+                           Text="{Binding CurrentWorkPlan.TestSteps, UpdateSourceTrigger=PropertyChanged}"
+                           Height="118"
+                           TextWrapping="Wrap"
+                           AcceptsReturn="True"
+                           VerticalScrollBarVisibility="Auto"/>
+                            </StackPanel>
+
+
+
+                            <!-- Кнопки действий -->
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right"  Margin="501,8,0,0" Width="232">
+                                <Button Content="💾 Сохранить" 
+                           Command="{Binding SaveWorkPlanInDialogCommand}"
+                           Style="{StaticResource ModernButton}"
+                           Background="{StaticResource SuccessBrush}"
+                           Margin="0,0,8,0"
+                           MinWidth="100"
+                           Padding="12,8"/>
+
+                                <Button Content="❌ Отмена" 
+                           Command="{Binding CancelWorkPlanInDialogCommand}"
+                           Style="{StaticResource ModernButton}"
+                           Background="{StaticResource ErrorBrush}"
+                           MinWidth="80"
+                           Padding="12,8"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Кнопка закрытия диалога -->
+                    <Button Grid.Row="0"
+               Command="{Binding CloseWorkPlanDialogCommand}"
+               Style="{StaticResource CloseButtonStyle}"
+               Content="✕"
+               FontSize="14"
+               HorizontalAlignment="Right"
+               VerticalAlignment="Top"
+               Margin="0,10,10,0"
+               Width="30" Height="30"/>
+                </Grid>
+            </Border>
+        </Border>
+
     </Grid>
 </Window>

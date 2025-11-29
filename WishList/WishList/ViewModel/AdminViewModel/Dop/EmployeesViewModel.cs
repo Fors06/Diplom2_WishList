@@ -714,7 +714,7 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                         taskInfo.AppendLine($"   • Как программист: {programmerTasks} задач");
                         taskInfo.AppendLine();
 
-                        foreach (var task in relatedTasks.Take(10)) // Показываем первые 10 задач чтобы не перегружать
+                        foreach (var task in relatedTasks.Take(10)) 
                         {
                             var role = task.ManagerId == employeeId ? "👔 Менеджер" : "💻 Программист";
 

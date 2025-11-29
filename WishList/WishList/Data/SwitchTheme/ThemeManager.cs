@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Windows;
 
 namespace WishList.Data.SwitchTheme
@@ -56,8 +54,23 @@ namespace WishList.Data.SwitchTheme
                 // Сохраняем ViewModel
                 var viewModel = mainWindow.DataContext;
 
-                // Создаем новое окно
-                var newWindow = new WishList.Views.AdminView.AdminWindow();
+                // Определяем тип текущего окна и создаем соответствующее новое окно
+                Window newWindow;
+
+                if (mainWindow is WishList.Views.AdminView.AdminWindow)
+                {
+                    newWindow = new WishList.Views.AdminView.AdminWindow();
+                }
+                else if (mainWindow is WishList.Views.ManagerView.ManagerWindow)
+                {
+                    newWindow = new WishList.Views.ManagerView.ManagerWindow();
+                }
+                else
+                {
+                    // Если тип окна неизвестен, используем окно по умолчанию (AdminWindow)
+                    newWindow = new WishList.Views.AdminView.AdminWindow();
+                }
+
                 newWindow.DataContext = viewModel;
 
                 // Закрываем старое окно
