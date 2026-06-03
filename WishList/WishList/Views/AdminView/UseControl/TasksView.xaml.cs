@@ -30,5 +30,32 @@ namespace WishList.Views.AdminView.UseControl
             // Блокируем прокрутку колесиком мыши в выпадающем списке
             e.Handled = true;
         }
+
+        // Проверка на ввод только цифр
+        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+            // Разрешаем только цифры и одну точку
+            foreach (char c in e.Text)
+            {
+                if (!char.IsDigit(c) && c != '.')
+                {
+                    e.Handled = true;
+                    return;
+                }
+            }
+        }
+
+        // Блокировка букв и символов при нажатии клавиш
+        private void BlockLettersAndSymbols(object sender, KeyEventArgs e)
+        {
+            // Блокируем буквы и символы, разрешаем цифры, Backspace, Delete, Enter, Tab
+            if (!(e.Key >= Key.D0 && e.Key <= Key.D9) &&
+                !(e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9) &&
+                e.Key != Key.Back && e.Key != Key.Delete &&
+                e.Key != Key.Enter && e.Key != Key.Tab && e.Key != Key.Decimal)
+            {
+                e.Handled = true;
+            }
+        }
     }
 }

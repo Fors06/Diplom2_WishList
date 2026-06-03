@@ -3,9 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:behaviors="clr-namespace:WishList.Services.Admin"
-             xmlns:local1="clr-namespace:WishList.Data.Convertes.Admin"
-             xmlns:services="clr-namespace:WishList.Services"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
@@ -16,384 +13,114 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Toolbar -->
-        <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" 
-                Padding="20,15" BorderBrush="{StaticResource BorderBrush}" 
-                BorderThickness="0,0,0,1" CornerRadius="8,8,0,0">
-            <StackPanel Orientation="Horizontal">
-                <Button Content="➕ Добавить сотрудника" 
-                        Command="{Binding AddEmployeeCommand}"
-                        Style="{StaticResource ModernButton}" 
-                        Background="{StaticResource SuccessBrush}"
-                        Margin="0,0,10,0"/>
-
-                <Button Content="✏️ Редактировать" 
-                        Command="{Binding EditEmployeeCommand}"
-                        Style="{StaticResource ModernButton}" 
-                        Background="{StaticResource AccentBrush}"
-                        Margin="0,0,10,0"/>
-
-                <Button Content="🗑️ Удалить" 
-                        Command="{Binding DeleteEmployeeCommand}"
-                        Style="{StaticResource ModernButton}" 
-                        Background="{StaticResource ErrorBrush}"
-                        Margin="0,0,10,0"/>
-
-                <Button Content="✅ Активировать" 
-                        Command="{Binding ActivateEmployeeCommand}"
-                        Style="{StaticResource ModernButton}" 
-                        Background="{StaticResource SuccessBrush}"
-                        Margin="0,0,10,0"/>
-
-                <Button Content="⏸️ Деактивировать" 
-                        Command="{Binding DeactivateEmployeeCommand}"
-                        Style="{StaticResource ModernButton}" 
-                        Background="{StaticResource WarningBrush}"
-                        Margin="0,0,20,0"/>
-
-                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource ModernTextBox}"
-                         Width="300" 
-                         Tag="🔍 Поиск сотрудников..."
-                         FontSize="12"/>
-
-                <Button Content="🔄 Обновить" 
-                        Command="{Binding LoadEmployeesCommand}"
-                        Style="{StaticResource ModernButton}" 
-                        Background="{StaticResource WarningBrush}"
-                        Margin="10,0,10,0"/>
-            </StackPanel>
+        <!-- Toolbar - только поиск -->
+        <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" Padding="15,12" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" CornerRadius="8,8,0,0">
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     Style="{StaticResource ModernTextBox}"
+                     Width="300" 
+                     Tag="🔍 Поиск сотрудников..."
+                     FontSize="12"
+                     HorizontalAlignment="Left"/>
         </Border>
 
         <!-- Filters Panel -->
-        <Border Grid.Row="1" Background="{StaticResource SecondaryBrush}" 
-                Padding="15,10" BorderBrush="{StaticResource BorderBrush}" 
-                BorderThickness="0,0,0,1">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- Первая строка фильтров -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                    <!-- Role Filter -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,15,0">
-                        <TextBlock Text="Роль:" 
-                                   VerticalAlignment="Center" 
-                                   Margin="0,0,5,0"
-                                   Foreground="{StaticResource TextBrush}"
-                                   FontWeight="SemiBold"/>
-                        <ComboBox ItemsSource="{Binding Roles}"
-                                  SelectedItem="{Binding SelectedRole}"
-                                  DisplayMemberPath="Name"
-                                  Style="{StaticResource ModernComboBox}"
-                                  Width="150"/>
-                    </StackPanel>
-
-                    <!-- Status Filter -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,15,0">
-                        <TextBlock Text="Статус:" 
-                                   VerticalAlignment="Center" 
-                                   Margin="0,0,5,0"
-                                   Foreground="{StaticResource TextBrush}"
-                                   FontWeight="SemiBold"/>
-                        <ComboBox ItemsSource="{Binding StatusFilters}"
-                                  SelectedItem="{Binding SelectedStatusFilter}"
-                                  DisplayMemberPath="Name"
-                                  Style="{StaticResource ModernComboBox}"
-                                  Width="150"/>
-                    </StackPanel>
-
-                    <!-- Clear Filters Button -->
-                    <Button Content="❌ Очистить фильтры"
-                            Command="{Binding ClearFiltersCommand}"
-                            Style="{StaticResource ModernButton}"
-                            Background="{StaticResource BorderBrush}"
-                            Foreground="{StaticResource TextSecondaryBrush}"
-                            Padding="10,8"
-                            FontSize="11"/>
+        <Border Grid.Row="1" Background="{StaticResource SecondaryBrush}" Padding="15,10" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <!-- Role Filter -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,15,0">
+                    <TextBlock Text="Роль:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="{StaticResource TextBrush}" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding Roles}" SelectedItem="{Binding SelectedRole}" DisplayMemberPath="Name" Style="{StaticResource ModernComboBox}" Width="150"/>
                 </StackPanel>
-
-                <!-- Вторая строка - фильтр по датам с range slider -->
-                <Border Grid.Row="1" Background="{StaticResource PrimaryBrush}" 
-                        CornerRadius="6" Padding="15,10" BorderThickness="1" 
-                        BorderBrush="{StaticResource BorderBrush}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock Grid.Column="0" 
-                                  Text="Дата регистрации:" 
-                                  VerticalAlignment="Center" 
-                                  Margin="0,0,15,0"
-                                  Foreground="{StaticResource TextBrush}"
-                                  FontWeight="SemiBold"/>
-
-                        <!-- Range Slider для дат -->
-                        <Grid Grid.Column="1" VerticalAlignment="Center" Margin="0,0,15,0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <!-- DatePicker для точного выбора дат -->
-                            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5">
-                                <DatePicker SelectedDate="{Binding FilterStartDate}"
-                                            Style="{StaticResource ModernDatePicker}"
-                                            Width="150"
-                                            FontSize="11"
-                                            Margin="0,0,10,0"/>
-
-                                <TextBlock Text="—" 
-                                           VerticalAlignment="Center" 
-                                           Margin="0,0,10,0"
-                                           Foreground="{StaticResource TextSecondaryBrush}"/>
-
-                                <DatePicker SelectedDate="{Binding FilterEndDate}"
-                                            Style="{StaticResource ModernDatePicker}"
-                                            Width="150"
-                                            FontSize="11"/>
-                            </StackPanel>
-
-                            <!-- Custom Range Slider -->
-                            <Border Grid.Row="1" Background="{StaticResource BorderBrush}" 
-                                    Height="6" CornerRadius="3" Margin="10,0">
-                                <Grid>
-                                    <!-- Track -->
-                                    <Border x:Name="Track" 
-                                            Background="{StaticResource BorderBrush}" 
-                                            CornerRadius="3"/>
-
-                                    <!-- Selected Range -->
-                                    <Border x:Name="SelectedRange" 
-                                            Background="{StaticResource AccentBrush}" 
-                                            CornerRadius="3"
-                                            HorizontalAlignment="Left"
-                                            Margin="{Binding SelectedRangeMargin}"/>
-
-                                    <!-- Thumbs -->
-                                    <Thumb x:Name="StartThumb" 
-                                           Width="12" 
-                                           Height="12" 
-                                           Background="{StaticResource AccentBrush}"
-                                           Cursor="SizeWE"
-                                           HorizontalAlignment="Left"
-                                           Margin="{Binding StartThumbMargin}"
-                                           behaviors:RangeSliderBehavior.StartThumbDragDeltaCommand="{Binding StartThumbDragDeltaCommand}">
-                                        <Thumb.Template>
-                                            <ControlTemplate TargetType="Thumb">
-                                                <Border Background="{TemplateBinding Background}"
-                                                        CornerRadius="6"
-                                                        BorderBrush="White"
-                                                        BorderThickness="2"/>
-                                            </ControlTemplate>
-                                        </Thumb.Template>
-                                    </Thumb>
-
-                                    <Thumb x:Name="EndThumb" 
-                                           Width="12" 
-                                           Height="12" 
-                                           Background="{StaticResource AccentBrush}"
-                                           Cursor="SizeWE"
-                                           HorizontalAlignment="Left"
-                                           Margin="{Binding EndThumbMargin}"
-                                           behaviors:RangeSliderBehavior.EndThumbDragDeltaCommand="{Binding EndThumbDragDeltaCommand}">
-                                        <Thumb.Template>
-                                            <ControlTemplate TargetType="Thumb">
-                                                <Border Background="{TemplateBinding Background}"
-                                                        CornerRadius="6"
-                                                        BorderBrush="White"
-                                                        BorderThickness="2"/>
-                                            </ControlTemplate>
-                                        </Thumb.Template>
-                                    </Thumb>
-                                </Grid>
-                            </Border>
-                        </Grid>
-
-                        <!-- Quick Date Filters -->
-                        <StackPanel Grid.Column="2" Orientation="Horizontal">
-                            <Button Content="Сегодня" 
-                                    Command="{Binding SetTodayFilterCommand}"
-                                    Style="{StaticResource ModernButton}"
-                                    Background="Transparent"
-                                    Foreground="{StaticResource AccentBrush}"
-                                    Padding="8,5"
-                                    FontSize="11"
-                                    Margin="0,0,5,0"/>
-                            <Button Content="Неделя" 
-                                    Command="{Binding SetWeekFilterCommand}"
-                                    Style="{StaticResource ModernButton}"
-                                    Background="Transparent"
-                                    Foreground="{StaticResource AccentBrush}"
-                                    Padding="8,5"
-                                    FontSize="11"
-                                    Margin="0,0,5,0"/>
-                            <Button Content="Месяц" 
-                                    Command="{Binding SetMonthFilterCommand}"
-                                    Style="{StaticResource ModernButton}"
-                                    Background="Transparent"
-                                    Foreground="{StaticResource AccentBrush}"
-                                    Padding="8,5"
-                                    FontSize="11"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-            </Grid>
+                
+                <!-- Status Filter -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,15,0">
+                    <TextBlock Text="Статус:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="{StaticResource TextBrush}" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding SelectedStatusFilter}" DisplayMemberPath="Name" Style="{StaticResource ModernComboBox}" Width="150"/>
+                </StackPanel>
+                
+                <!-- Clear Filters Button -->
+                <Button Content="❌ Очистить" Command="{Binding ClearFiltersCommand}" Style="{StaticResource ModernButton}" Background="{StaticResource BorderBrush}" Foreground="{StaticResource TextSecondaryBrush}" Padding="10,8" FontSize="11"/>
+            </StackPanel>
         </Border>
 
-        <!-- Employees DataGrid -->
-        <Border Grid.Row="2" Background="{StaticResource PrimaryBrush}" 
-                CornerRadius="0,0,8,8" Padding="1">
-            <DataGrid ItemsSource="{Binding EmployeesView}"
-                      SelectedItem="{Binding SelectedEmployee}"
-                      Style="{StaticResource ModernDataGrid}"
-                      ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
-                      RowStyle="{StaticResource ModernDataGridRow}"
-                      CellStyle="{StaticResource ModernDataGridCell}"
-                      AutoGenerateColumns="False">
-
+        <!-- Employees DataGrid с кнопками действий -->
+        <Border Grid.Row="2" Background="{StaticResource PrimaryBrush}" CornerRadius="0,0,8,8" Padding="1">
+            <DataGrid ItemsSource="{Binding EmployeesView}" SelectedItem="{Binding SelectedEmployee}" Style="{StaticResource ModernDataGrid}" ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}" RowStyle="{StaticResource ModernDataGridRow}" CellStyle="{StaticResource ModernDataGridCell}" AutoGenerateColumns="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="№" Binding="{Binding OrderNumber}" Width="50"/>
                     <DataGridTextColumn Header="Фамилия" Binding="{Binding LastName}" Width="120"/>
                     <DataGridTextColumn Header="Имя" Binding="{Binding FirstName}" Width="120"/>
                     <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="200"/>
                     <DataGridTextColumn Header="Роль" Binding="{Binding Role.Name}" Width="120"/>
-                    <DataGridTextColumn Header="Активен" Binding="{Binding IsActive}" Width="80" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Дата регистрации" 
-                                       Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy}" 
-                                       Width="120"/>
+                    <DataGridTextColumn Header="Активен" Binding="{Binding IsActive}" Width="80"/>
+                    <DataGridTextColumn Header="Дата регистрации" Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy}" Width="120"/>
+                    <DataGridTemplateColumn Header="Действия" Width="150">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button Content="✏️" 
+                                            Command="{Binding DataContext.EditEmployeeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            Style="{StaticResource TextButton}"
+                                            ToolTip="Редактировать"
+                                            Padding="6,3"/>
+                                   <!-- <Button Content="✅" 
+                                            Command="{Binding DataContext.ActivateEmployeeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            Style="{StaticResource TextButton}"
+                                            ToolTip="Активировать"
+                                            Padding="6,3"
+                                            Foreground="{StaticResource SuccessBrush}"
+                                            Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}"/> 
+                                    <Button Content="⏸️" 
+                                            Command="{Binding DataContext.DeactivateEmployeeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            Style="{StaticResource TextButton}"
+                                            ToolTip="Деактивировать"
+                                            Padding="6,3"
+                                            Foreground="{StaticResource WarningBrush}"
+                                            Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}}"/> -->
+                                    <Button Content="🗑️" 
+                                            Command="{Binding DataContext.DeleteEmployeeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            Style="{StaticResource TextButton}"
+                                            Margin="4,0,0,0"
+                                            Foreground="{StaticResource ErrorBrush}"
+                                            ToolTip="Удалить"
+                                            Padding="6,3"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
 
-        <!-- Dialog for Add/Edit Employee -->
-        <Border Grid.Row="0" Grid.RowSpan="3"
-                Background="#CC000000"
-                Visibility="{Binding IsDialogOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <Border Background="{StaticResource CardBrush}"
-                    CornerRadius="8"
-                    Padding="20"
-                    Width="500"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Center"
-                    BorderBrush="{StaticResource BorderBrush}"
-                    BorderThickness="1">
+        <!-- Dialog for Add/Edit Employee (без изменений) -->
+        <Border Grid.Row="0" Grid.RowSpan="3" Background="#CC000000" Visibility="{Binding IsDialogOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Border Background="{StaticResource CardBrush}" CornerRadius="8" Padding="20" Width="500" VerticalAlignment="Center" HorizontalAlignment="Center" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
                 <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- Header -->
-                    <TextBlock Grid.Row="0" 
-                              Text="{Binding DialogTitle}"
-                              Style="{StaticResource TitleTextStyle}"
-                              Margin="0,0,0,20"/>
-
-                    <!-- Form -->
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="{Binding DialogTitle}" Style="{StaticResource TitleTextStyle}" Margin="0,0,0,20"/>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="400">
                         <StackPanel>
                             <Grid Margin="0,0,0,15">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="10"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Имя *" 
-                                              Style="{StaticResource SubtitleTextStyle}"/>
-                                    <TextBox Text="{Binding EditingEmployee.FirstName, UpdateSourceTrigger=PropertyChanged}"
-                                            Style="{StaticResource ModernTextBox}"
-                                            Tag="Введите имя"
-                                            Margin="0,0,0,10"/>
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Фамилия *" 
-                                              Style="{StaticResource SubtitleTextStyle}"/>
-                                    <TextBox Text="{Binding EditingEmployee.LastName, UpdateSourceTrigger=PropertyChanged}"
-                                            Style="{StaticResource ModernTextBox}"
-                                            Tag="Введите фамилию"
-                                            Margin="0,0,0,10"/>
-                                </StackPanel>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0"><TextBlock Text="Имя *" Style="{StaticResource SubtitleTextStyle}"/><TextBox Text="{Binding EditingEmployee.FirstName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Tag="Введите имя" Margin="0,0,0,10"/></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="Фамилия *" Style="{StaticResource SubtitleTextStyle}"/><TextBox Text="{Binding EditingEmployee.LastName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Tag="Введите фамилию" Margin="0,0,0,10"/></StackPanel>
                             </Grid>
-
-                            <TextBlock Text="Email *" 
-                                      Style="{StaticResource SubtitleTextStyle}"/>
-                            
-                            <TextBox Text="{Binding EditingEmployee.Email, UpdateSourceTrigger=PropertyChanged}"
-                                    Style="{StaticResource ModernTextBox}"
-                                    Tag="Введите email"
-                                    Margin="0,0,0,15"/>
-
-                            <TextBlock Text="Пароль *" 
-                                      Style="{StaticResource SubtitleTextStyle}"/>
-                            <!-- Пароль -->
-                            <TextBox Style="{StaticResource ModernPasswordTextBox}"
-                                     Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
-                                     services:TextBoxBehavior.MonitorText="True"
-                                     Height="45"/>
-
-                            <!-- Подтверждение пароля -->
-                            <TextBlock Text="Подтверждение пароля"
-                                       Style="{StaticResource SubtitleTextStyle}"
-                                       Margin="0,15,0,0"/>
-
-                            <!-- Подтверждение пароля -->
-                            <TextBox Style="{StaticResource ModernPasswordTextBox}"
-                                     Text="{Binding ConfirmPassword, UpdateSourceTrigger=PropertyChanged}"
-                                     services:TextBoxBehavior.MonitorText="True"
-                                     Height="45"/>
-
-                            <Grid Margin="0,0,0,15">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="10"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Роль *" 
-                                              Style="{StaticResource SubtitleTextStyle}"/>
-                                    <ComboBox ItemsSource="{Binding AllRoles}"
-                                              SelectedValue="{Binding EditingEmployee.RoleId}"
-                                              SelectedValuePath="Id"
-                                              DisplayMemberPath="Name"
-                                              Style="{StaticResource ModernComboBox}"
-                                              Margin="0,0,0,10"/>
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Статус" 
-                                              Style="{StaticResource SubtitleTextStyle}"/>
-                                    <CheckBox IsChecked="{Binding EditingEmployee.IsActive}"
-                                              Content="Активен"
-                                              Style="{StaticResource ModernCheckBox}"
-                                              VerticalAlignment="Center"
-                                              Margin="0,10,0,0"/>
-                                </StackPanel>
+                            <TextBlock Text="Email *" Style="{StaticResource SubtitleTextStyle}"/>
+                            <TextBox Text="{Binding EditingEmployee.Email, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Tag="Введите email" Margin="0,0,0,15"/>
+                            <TextBlock Text="Пароль *" Style="{StaticResource SubtitleTextStyle}"/>
+                            <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Tag="Введите пароль" Margin="0,0,0,15"/>
+                            <TextBlock Text="Подтверждение пароля" Style="{StaticResource SubtitleTextStyle}" Margin="0,15,0,0"/>
+                            <TextBox Text="{Binding ConfirmPassword, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Tag="Подтвердите пароль" Margin="0,0,0,15"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0"><TextBlock Text="Роль *" Style="{StaticResource SubtitleTextStyle}"/><ComboBox ItemsSource="{Binding AllRoles}" SelectedValue="{Binding EditingEmployee.RoleId}" SelectedValuePath="Id" DisplayMemberPath="Name" Style="{StaticResource ModernComboBox}" Margin="0,0,0,10"/></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="Статус" Style="{StaticResource SubtitleTextStyle}"/><CheckBox IsChecked="{Binding EditingEmployee.IsActive}" Content="Активен" Style="{StaticResource ModernCheckBox}" VerticalAlignment="Center" Margin="0,10,0,0"/></StackPanel>
                             </Grid>
                         </StackPanel>
                     </ScrollViewer>
-
-                    <!-- Buttons -->
                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                        <Button Content="❌ Отмена"
-                                Command="{Binding CancelEditCommand}"
-                                Style="{StaticResource ModernButton}"
-                                Background="{StaticResource ErrorBrush}"
-                                Margin="0,0,10,0"/>
-                        <Button Content="💾 Сохранить"
-                                Command="{Binding SaveEmployeeCommand}"
-                                Style="{StaticResource ModernButton}"
-                                Background="{StaticResource SuccessBrush}"/>
+                        <Button Content="❌ Отмена" Command="{Binding CancelEditCommand}" Style="{StaticResource ModernButton}" Background="{StaticResource ErrorBrush}" Margin="0,0,10,0"/>
+                        <Button Content="💾 Сохранить" Command="{Binding SaveEmployeeCommand}" Style="{StaticResource ModernButton}" Background="{StaticResource SuccessBrush}"/>
                     </StackPanel>
                 </Grid>
             </Border>

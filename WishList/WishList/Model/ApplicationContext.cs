@@ -17,6 +17,7 @@ namespace WishList
         public DbSet<EmployeeRole> EmployeeRoles { get; set; }
         public DbSet<TaskStatuss> TaskStatuses { get; set; }
         public DbSet<TaskPriority> TaskPriorities { get; set; }
+        public DbSet<TaskWorkPlan> TaskWordPlan { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

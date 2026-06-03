@@ -78,5 +78,29 @@ namespace WishList.Views.ManagerView
         {
             TabItemDragDropBehavior.HandleWindowDragDrop(sender, e);
         }
+
+        // Добавьте эти методы в ManagerWindow.xaml.cs
+        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+            foreach (char c in e.Text)
+            {
+                if (!char.IsDigit(c) && c != '.')
+                {
+                    e.Handled = true;
+                    return;
+                }
+            }
+        }
+
+        private void BlockLettersAndSymbols(object sender, KeyEventArgs e)
+        {
+            if (!(e.Key >= Key.D0 && e.Key <= Key.D9) &&
+                !(e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9) &&
+                e.Key != Key.Back && e.Key != Key.Delete &&
+                e.Key != Key.Enter && e.Key != Key.Tab && e.Key != Key.Decimal)
+            {
+                e.Handled = true;
+            }
+        }
     }
 }

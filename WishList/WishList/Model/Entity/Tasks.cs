@@ -37,9 +37,6 @@ namespace WishList.Model.Entity
         [Column("TaskProgressId")]
         public int TaskProgressId { get; set; }
 
-        [Column("WorkPlansId")]
-        public int WorkPlansId { get; set; }
-
         [Column("CreatedDate")]
         public DateTime CreatedDate { get; set; }
 
@@ -64,7 +61,6 @@ namespace WishList.Model.Entity
         public virtual TaskPriority Priority { get; set; }
         public virtual TaskProgress TaskProgress { get; set; }
 
-        [ForeignKey("WorkPlansId")] // Явно указать внешний ключ
-        public virtual WorkPlan WorkPlan { get; set; }
+        public virtual ICollection<TaskWorkPlan> TaskWorkPlans { get; set; } = new List<TaskWorkPlan>();
     }
 }

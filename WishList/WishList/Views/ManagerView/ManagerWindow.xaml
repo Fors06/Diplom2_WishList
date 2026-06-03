@@ -1010,193 +1010,193 @@
 
         <!-- ДИАЛОГ ПЛАНОВ РАБОТ -->
         <Border Grid.Row="0" Grid.RowSpan="4"
-   Background="#CC000000"
-   Visibility="{Binding IsWorkPlanDialogOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <Border Background="{StaticResource CardBrush}"
-       CornerRadius="8"
-       Padding="20"
-       Width="800"
-       Height="600"
-       VerticalAlignment="Center"
-       HorizontalAlignment="Center"
-       BorderBrush="{StaticResource BorderBrush}"
-       BorderThickness="1">
+        Background="#CC000000"
+        Visibility="{Binding IsWorkPlanDialogOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+    <Border Background="{StaticResource CardBrush}"
+            CornerRadius="8"
+            Padding="20"
+            Width="800"
+            Height="600"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"
+            BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+                <TextBlock Text="📋 ПЛАН РАБОТ" 
+                           Style="{StaticResource TitleTextStyle}"
+                           FontSize="18"/>
+                <TextBlock Text="{Binding SelectedOrder.Title, StringFormat=' - {0}'}"
+                           Style="{StaticResource TitleTextStyle}"
+                           FontSize="18"
+                           Foreground="{StaticResource AccentBrush}"
+                           Margin="5,0,0,0"/>
+            </StackPanel>
+
+            <!-- Панель управления планами -->
+            <Border Grid.Row="1" Background="{StaticResource SecondaryBrush}" 
+                    CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="➕ Добавить план" 
+                            Command="{Binding AddWorkPlanInDialogCommand}"
+                            Style="{StaticResource ModernButton}"
+                            Background="{StaticResource SuccessBrush}"
+                            Margin="0,0,10,0"
+                            Padding="10,6"/>
+
+                    <TextBlock Text="{Binding WorkPlansForDialog.Count, StringFormat={}Планов: {0}}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="12"
+                               VerticalAlignment="Center"
+                               Margin="10,0,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Таблица планов работ -->
+            <DataGrid Grid.Row="2" 
+                      ItemsSource="{Binding WorkPlansForDialog}"
+                      SelectedItem="{Binding SelectedWorkPlan}"
+                      Style="{StaticResource ModernDataGrid}"
+                      ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
+                      RowStyle="{StaticResource ModernDataGridRow}"
+                      CellStyle="{StaticResource ModernDataGridCell}"
+                      AutoGenerateColumns="False"
+                      Margin="0,0,0,10"
+                      MinHeight="300">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="№" Binding="{Binding OrderNumber}" Width="50"/>
+                    <DataGridTextColumn Header="Описание" Binding="{Binding PlanDescription}" Width="*" MinWidth="200"/>
+                    <DataGridTextColumn Header="План действий" Binding="{Binding TestSteps}" Width="*" MinWidth="200"/>
+                    <DataGridTextColumn Header="Часы" Binding="{Binding EstimatedHours}" Width="80"/>
+                    <DataGridTextColumn Header="Дата создания" 
+                                        Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy}" 
+                                        Width="110"/>
+                    <DataGridTemplateColumn Header="Действия" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button Content="✏️" 
+                                            Command="{Binding DataContext.EditWorkPlanInDialogCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding Id}"
+                                            Style="{StaticResource TextButton}"
+                                            ToolTip="Редактировать"
+                                            Padding="6,3"/>
+                                    <Button Content="🗑️" 
+                                            Command="{Binding DataContext.DeleteWorkPlanInDialogCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding Id}"
+                                            Style="{StaticResource TextButton}"
+                                            Margin="4,0,0,0"
+                                            Foreground="{StaticResource ErrorBrush}"
+                                            ToolTip="Удалить"
+                                            Padding="6,3"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Форма плана работ -->
+            <Border Grid.Row="3" 
+                    Background="{StaticResource SecondaryBrush}" 
+                    CornerRadius="4" 
+                    Padding="12" 
+                    BorderThickness="1" 
+                    BorderBrush="{StaticResource BorderBrush}"
+                    Visibility="{Binding IsWorkPlanFormVisible, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                    Margin="0,10,0,0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition/>
-                        <RowDefinition Height="Auto" MinHeight="322.4"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Header -->
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
-                        <TextBlock Text="📋 ПЛАН РАБОТ" 
-                     Style="{StaticResource TitleTextStyle}"
-                     FontSize="18"/>
-                        <TextBlock Text="{Binding SelectedOrder.Title, StringFormat=' - {0}'}"
-                     Style="{StaticResource TitleTextStyle}"
-                     FontSize="18"
-                     Foreground="{StaticResource AccentBrush}"
-                     Margin="5,0,0,0"/>
+                    <!-- Первая строка -->
+                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <TextBlock Text="Название плана *" 
+                                       Foreground="{StaticResource TextBrush}"
+                                       FontWeight="SemiBold" 
+                                       Margin="0,0,0,4"/>
+                            <TextBox Style="{StaticResource ModernTextBox}"
+                                     Tag="Введите название плана работ"
+                                     Text="{Binding CurrentWorkPlan.PlanDescription, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Width="120">
+                            <TextBlock Text="Часы *" 
+                                       Foreground="{StaticResource TextBrush}"
+                                       FontWeight="SemiBold" 
+                                       Margin="0,0,0,4"/>
+                            <TextBox Style="{StaticResource ModernTextBox}"
+                                     Tag="Часы"
+                                     Text="{Binding CurrentWorkPlan.EstimatedHours, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, TargetNullValue=0}"
+                                     PreviewTextInput="NumberValidationTextBox"
+                                     PreviewKeyDown="BlockLettersAndSymbols"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Вторая строка - План действий -->
+                    <StackPanel Grid.Row="1" Margin="0,10,0,10">
+                        <TextBlock Text="План действий" 
+                                   Foreground="{StaticResource TextBrush}"
+                                   FontWeight="SemiBold" 
+                                   Margin="0,0,0,4"/>
+                        <TextBox Style="{StaticResource ModernTextBox}"
+                                 Tag="Опишите план действий..."
+                                 Text="{Binding CurrentWorkPlan.TestSteps, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="118"
+                                 TextWrapping="Wrap"
+                                 AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto"/>
                     </StackPanel>
 
-                    <!-- Панель управления планами -->
-                    <Border Grid.Row="1" Background="{StaticResource SecondaryBrush}" 
-               CornerRadius="4" Padding="10" Margin="0,0,0,12">
-                        <StackPanel Orientation="Horizontal">
-                            <Button Content="➕ Добавить план" 
-                       Command="{Binding AddWorkPlanInDialogCommand}"
-                       Style="{StaticResource ModernButton}"
-                       Background="{StaticResource SuccessBrush}"
-                       Margin="0,0,10,0"
-                       Padding="10,6"/>
-
-                            <TextBlock Text="{Binding WorkPlansForDialog.Count, StringFormat={}Планов: {0}}"
-                         Foreground="{StaticResource TextSecondaryBrush}"
-                         FontSize="12"
-                         VerticalAlignment="Center"
-                         Margin="10,0,0,0"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Таблица планов работ -->
-                    <DataGrid Grid.Row="2" 
-                ItemsSource="{Binding WorkPlansForDialog}"
-                SelectedItem="{Binding SelectedWorkPlan}"
-                Style="{StaticResource ModernDataGrid}"
-                ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}"
-                RowStyle="{StaticResource ModernDataGridRow}"
-                CellStyle="{StaticResource ModernDataGridCell}"
-                AutoGenerateColumns="False"
-                Margin="0,0,0,10">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="№" Binding="{Binding OrderNumber}" Width="50"/>
-                            <DataGridTextColumn Header="Описание" Binding="{Binding PlanDescription}" Width="*" MinWidth="200"/>
-                            <DataGridTextColumn Header="Тип" Binding="{Binding Type}" Width="120"/>
-                            <DataGridTextColumn Header="Часы" Binding="{Binding EstimatedHours}" Width="80"/>
-                            <DataGridTextColumn Header="Дата создания" 
-                                  Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy}" 
-                                  Width="110"/>
-                            <DataGridTemplateColumn Header="Действия" Width="120">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <Button Content="✏️" 
-                                       Command="{Binding DataContext.EditWorkPlanInDialogCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                       CommandParameter="{Binding Id}"
-                                       Style="{StaticResource TextButton}"
-                                       ToolTip="Редактировать"
-                                       Padding="6,3"/>
-
-                                            <Button Content="🗑️" 
-                                       Command="{Binding DataContext.DeleteWorkPlanInDialogCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                       CommandParameter="{Binding Id}"
-                                       Style="{StaticResource TextButton}"
-                                       Margin="4,0,0,0"
-                                       Foreground="{StaticResource ErrorBrush}"
-                                       ToolTip="Удалить"
-                                       Padding="6,3"/>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-
-                    <!-- Форма плана работ -->
-                    <Border Grid.Row="3" 
-                           Background="{StaticResource SecondaryBrush}" 
-                           CornerRadius="4" 
-                           Padding="12" 
-                           BorderThickness="1" 
-                           BorderBrush="{StaticResource BorderBrush}"
-                           Visibility="{Binding IsWorkPlanFormVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,10,0,0">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto" MinHeight="167.2"/>
-                                <RowDefinition Height="Auto" MinHeight="49.6"/>
-                            </Grid.RowDefinitions>
-
-                            <!-- Первая строка -->
-                            <Grid Grid.Row="0" Margin="0,0,0,8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                                    <TextBlock Text="Название плана *" 
-                                 Foreground="{StaticResource TextBrush}"
-                                 FontWeight="SemiBold" 
-                                 Margin="0,0,0,4"/>
-                                    <TextBox Style="{StaticResource ModernTextBox}"
-                               Tag="Введите название плана работ"
-                               Text="{Binding CurrentWorkPlan.PlanDescription, UpdateSourceTrigger=PropertyChanged}"/>
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="1" Width="120">
-                                    <TextBlock Text="Часы *" 
-                                 Foreground="{StaticResource TextBrush}"
-                                 FontWeight="SemiBold" 
-                                 Margin="0,0,0,4"/>
-                                    <TextBox Style="{StaticResource ModernTextBox}"
-                               Tag="Часы"
-                               Text="{Binding CurrentWorkPlan.EstimatedHours, UpdateSourceTrigger=PropertyChanged}"/>
-                                </StackPanel>
-                            </Grid>
-
-                            <!-- Вторая строка -->
-                            <StackPanel Grid.Row="1" Margin="0,10,0,10">
-                                <TextBlock Text="План действий" 
-                             Foreground="{StaticResource TextBrush}"
-                             FontWeight="SemiBold" 
-                             Margin="0,0,0,4"/>
-                                <TextBox Style="{StaticResource ModernTextBox}"
-                           Tag="Опишите план действия..."
-                           Text="{Binding CurrentWorkPlan.TestSteps, UpdateSourceTrigger=PropertyChanged}"
-                           Height="118"
-                           TextWrapping="Wrap"
-                           AcceptsReturn="True"
-                           VerticalScrollBarVisibility="Auto"/>
-                            </StackPanel>
-
-
-
-                            <!-- Кнопки действий -->
-                            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right"  Margin="501,8,0,0" Width="232">
-                                <Button Content="💾 Сохранить" 
-                           Command="{Binding SaveWorkPlanInDialogCommand}"
-                           Style="{StaticResource ModernButton}"
-                           Background="{StaticResource SuccessBrush}"
-                           Margin="0,0,8,0"
-                           MinWidth="100"
-                           Padding="12,8"/>
-
-                                <Button Content="❌ Отмена" 
-                           Command="{Binding CancelWorkPlanInDialogCommand}"
-                           Style="{StaticResource ModernButton}"
-                           Background="{StaticResource ErrorBrush}"
-                           MinWidth="80"
-                           Padding="12,8"/>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <!-- Кнопка закрытия диалога -->
-                    <Button Grid.Row="0"
-               Command="{Binding CloseWorkPlanDialogCommand}"
-               Style="{StaticResource CloseButtonStyle}"
-               Content="✕"
-               FontSize="14"
-               HorizontalAlignment="Right"
-               VerticalAlignment="Top"
-               Margin="0,10,10,0"
-               Width="30" Height="30"/>
+                    <!-- Кнопки действий -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="💾 Сохранить" 
+                                Command="{Binding SaveWorkPlanInDialogCommand}"
+                                Style="{StaticResource ModernButton}"
+                                Background="{StaticResource SuccessBrush}"
+                                Margin="0,0,8,0"
+                                MinWidth="100"
+                                Padding="12,8"/>
+                        <Button Content="❌ Отмена" 
+                                Command="{Binding CancelWorkPlanInDialogCommand}"
+                                Style="{StaticResource ModernButton}"
+                                Background="{StaticResource ErrorBrush}"
+                                MinWidth="80"
+                                Padding="12,8"/>
+                    </StackPanel>
                 </Grid>
             </Border>
-        </Border>
+
+            <!-- Кнопка закрытия диалога -->
+            <Button Grid.Row="0"
+                    Command="{Binding CloseWorkPlanDialogCommand}"
+                    Style="{StaticResource CloseButtonStyle}"
+                    Content="✕"
+                    FontSize="14"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Margin="0,10,10,0"
+                    Width="30" Height="30"/>
+        </Grid>
+    </Border>
+</Border>
 
     </Grid>
 </Window>
