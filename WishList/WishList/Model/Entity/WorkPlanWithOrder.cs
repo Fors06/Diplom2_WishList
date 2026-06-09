@@ -7,6 +7,8 @@ namespace WishList.Model.Entity
     public class WorkPlanWithOrder : INotifyPropertyChanged
     {
         private WorkPlan _workPlan;
+        private bool _isCompleted;
+
         public WorkPlan WorkPlan
         {
             get => _workPlan;
@@ -19,8 +21,6 @@ namespace WishList.Model.Entity
                 OnPropertyChanged(nameof(TestSteps));
                 OnPropertyChanged(nameof(EstimatedHours));
                 OnPropertyChanged(nameof(CreatedDate));
-                OnPropertyChanged(nameof(IsLinkedToCurrentTask));
-                OnPropertyChanged(nameof(IsPrimary));
             }
         }
 
@@ -30,10 +30,20 @@ namespace WishList.Model.Entity
         public string TestSteps => WorkPlan?.TestSteps ?? string.Empty;
         public decimal EstimatedHours => WorkPlan?.EstimatedHours ?? 0;
         public DateTime CreatedDate => WorkPlan?.CreatedDate ?? DateTime.MinValue;
-        public bool IsLinkedToCurrentTask { get; set; } = false;
-        public bool IsPrimary { get; set; } = false;
+
+        // Локальное свойство для пометки выполнения
+        public bool IsCompleted
+        {
+            get => _isCompleted;
+            set
+            {
+                _isCompleted = value;
+                OnPropertyChanged(nameof(IsCompleted));
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        protected virtual void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

@@ -54,29 +54,56 @@ namespace WishList.Data.SwitchTheme
                 // Сохраняем ViewModel
                 var viewModel = mainWindow.DataContext;
 
-                // Определяем тип текущего окна и создаем соответствующее новое окно
+                // Получаем тип DataContext, чтобы определить, какое окно нужно создать
+                Type viewModelType = viewModel.GetType();
+
                 Window newWindow;
 
-                if (mainWindow is WishList.Views.AdminView.AdminWindow)
+                // Определяем тип окна по типу ViewModel
+                if (viewModelType.Name.Contains("Admin") || viewModelType.Name == "MainAdminViewModel")
                 {
                     newWindow = new WishList.Views.AdminView.AdminWindow();
                 }
-                else if (mainWindow is WishList.Views.ManagerView.ManagerWindow)
+                else if (viewModelType.Name.Contains("Manager") || viewModelType.Name == "ManagerWindowViewModel")
                 {
                     newWindow = new WishList.Views.ManagerView.ManagerWindow();
                 }
+                else if (viewModelType.Name.Contains("Programmer") || viewModelType.Name == "ProgrammerWindowViewModel")
+                {
+                    newWindow = new WishList.Views.ProgrammerView.ProgrammerWindow();
+                }
                 else
                 {
-                    // Если тип окна неизвестен, используем окно по умолчанию (AdminWindow)
-                    newWindow = new WishList.Views.AdminView.AdminWindow();
+                    // Если тип неизвестен, пробуем определить по имени окна
+                    string windowTypeName = mainWindow.GetType().Name;
+                    if (windowTypeName.Contains("Admin"))
+                    {
+                        newWindow = new WishList.Views.AdminView.AdminWindow();
+                    }
+                    else if (windowTypeName.Contains("Manager"))
+                    {
+                        newWindow = new WishList.Views.ManagerView.ManagerWindow();
+                    }
+                    else if (windowTypeName.Contains("Programmer"))
+                    {
+                        newWindow = new WishList.Views.ProgrammerView.ProgrammerWindow();
+                    }
+                    else
+                    {
+                        newWindow = new WishList.Views.AdminView.AdminWindow();
+                    }
                 }
 
                 newWindow.DataContext = viewModel;
+
+                // Сохраняем состояние окна
+                var windowState = mainWindow.WindowState;
 
                 // Закрываем старое окно
                 mainWindow.Close();
 
                 // Показываем новое окно
+                newWindow.WindowState = windowState;
                 newWindow.Show();
                 app.MainWindow = newWindow;
             }

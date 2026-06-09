@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    
+
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </UserControl.Resources>
@@ -17,14 +17,22 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Toolbar - только поиск -->
+        <!-- Toolbar -->
         <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" Padding="15,12" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" CornerRadius="8,8,0,0">
-            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                     Style="{StaticResource ModernTextBox}"
-                     Width="300" 
-                     Tag="🔍 Поиск клиентов..."
-                     FontSize="12"
-                     HorizontalAlignment="Left"/>
+            <StackPanel Orientation="Horizontal">
+                <Button Content="➕ Добавить клиента" 
+                        Command="{Binding AddClientCommand}"
+                        Style="{StaticResource ModernButton}"
+                        Background="{StaticResource SuccessBrush}"
+                        Margin="0,0,15,0"
+                        Padding="12,8"/>
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource ModernTextBox}"
+                         Width="300" 
+                         Tag="🔍 Поиск клиентов..."
+                         FontSize="12"
+                         VerticalAlignment="Center"/>
+            </StackPanel>
         </Border>
 
         <!-- Filters Panel -->
@@ -35,9 +43,9 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                
+
                 <TextBlock Grid.Column="0" Text="Дата регистрации:" VerticalAlignment="Center" Margin="0,0,15,0" Foreground="{StaticResource TextBrush}" FontWeight="SemiBold"/>
-                
+
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
                     <DatePicker SelectedDate="{Binding FilterStartDate}" Style="{StaticResource ModernDatePicker}" Width="120" FontSize="11" Margin="0,0,5,0"/>
                     <TextBlock Text="—" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="{StaticResource TextSecondaryBrush}"/>
@@ -46,14 +54,20 @@
                     <Button Content="Неделя" Command="{Binding SetWeekFilterCommand}" Style="{StaticResource ModernButton}" Background="Transparent" Foreground="{StaticResource AccentBrush}" Padding="8,5" FontSize="11" Margin="0,0,5,0"/>
                     <Button Content="Месяц" Command="{Binding SetMonthFilterCommand}" Style="{StaticResource ModernButton}" Background="Transparent" Foreground="{StaticResource AccentBrush}" Padding="8,5" FontSize="11"/>
                 </StackPanel>
-                
+
                 <Button Grid.Column="2" Content="❌ Очистить" Command="{Binding ClearFiltersCommand}" Style="{StaticResource ModernButton}" Background="{StaticResource BorderBrush}" Foreground="{StaticResource TextSecondaryBrush}" Padding="10,8" FontSize="11" Margin="15,0,0,0"/>
             </Grid>
         </Border>
 
-        <!-- Clients DataGrid с кнопками действий -->
+        <!-- Clients DataGrid -->
         <Border Grid.Row="2" Background="{StaticResource PrimaryBrush}" CornerRadius="0,0,8,8" Padding="1">
-            <DataGrid ItemsSource="{Binding FilteredClients}" SelectedItem="{Binding SelectedClient}" Style="{StaticResource ModernDataGrid}" ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}" RowStyle="{StaticResource ModernDataGridRow}" CellStyle="{StaticResource ModernDataGridCell}" AutoGenerateColumns="False">
+            <DataGrid ItemsSource="{Binding FilteredClients}" 
+                      SelectedItem="{Binding SelectedClient}"
+                      Style="{StaticResource ModernDataGrid}" 
+                      ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeader}" 
+                      RowStyle="{StaticResource ModernDataGridRow}" 
+                      CellStyle="{StaticResource ModernDataGridCell}" 
+                      AutoGenerateColumns="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="#" Binding="{Binding OrderNumber}" Width="50"/>
                     <DataGridTextColumn Header="Компания" Binding="{Binding CompanyName}" Width="200"/>
@@ -68,11 +82,13 @@
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                     <Button Content="✏️" 
                                             Command="{Binding DataContext.EditClientCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding Id}"
                                             Style="{StaticResource TextButton}"
                                             ToolTip="Редактировать"
                                             Padding="6,3"/>
                                     <Button Content="🗑️" 
                                             Command="{Binding DataContext.DeleteClientCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding Id}"
                                             Style="{StaticResource TextButton}"
                                             Margin="4,0,0,0"
                                             Foreground="{StaticResource ErrorBrush}"
@@ -86,12 +102,18 @@
             </DataGrid>
         </Border>
 
-        <!-- Dialog for Add/Edit Client (без изменений) -->
+        <!-- Dialog for Add/Edit Client -->
         <Border Grid.Row="0" Grid.RowSpan="3" Background="#CC000000" Visibility="{Binding IsDialogOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
             <Border Background="{StaticResource CardBrush}" CornerRadius="8" Padding="20" Width="500" VerticalAlignment="Center" HorizontalAlignment="Center" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
                 <Grid>
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
                     <TextBlock Grid.Row="0" Text="{Binding DialogTitle}" Style="{StaticResource TitleTextStyle}" Margin="0,0,0,20"/>
+
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="400">
                         <StackPanel>
                             <TextBlock Text="Название компании *" Style="{StaticResource SubtitleTextStyle}"/>
@@ -106,6 +128,7 @@
                             <TextBox Text="{Binding EditingClient.Address, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Tag="Введите адрес" Height="60" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Margin="0,0,0,15"/>
                         </StackPanel>
                     </ScrollViewer>
+
                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
                         <Button Content="❌ Отмена" Command="{Binding CancelEditCommand}" Style="{StaticResource ModernButton}" Background="{StaticResource ErrorBrush}" Margin="0,0,10,0"/>
                         <Button Content="💾 Сохранить" Command="{Binding SaveClientCommand}" Style="{StaticResource ModernButton}" Background="{StaticResource SuccessBrush}"/>

@@ -1,0 +1,72 @@
+﻿<Window x:Class="WishList.Views.ProgrammerView.WorkPlanDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:services="clr-namespace:WishList.Services"
+        Title="{Binding DialogTitle}"
+        Height="550" Width="550"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{StaticResource BackgroundBrush}">
+
+    <Border Background="{StaticResource CardBrush}" CornerRadius="8" Padding="20">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="{Binding DialogTitle}" 
+                       Style="{StaticResource TitleTextStyle}"
+                       FontSize="18" Margin="0,0,0,20"/>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <!-- Название плана с Watermark -->
+                    <TextBlock Text="Название плана *" Style="{StaticResource SubtitleTextStyle}" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding EditingWorkPlan.PlanDescription, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource ModernTextBox}"
+                             Tag="Введите название плана"
+                             services:TextBoxBehavior.MonitorText="True"
+                             Margin="0,0,0,15"
+                             Height="40"/>
+
+                    <!-- План действий с Watermark -->
+                    <TextBlock Text="План действий *" Style="{StaticResource SubtitleTextStyle}" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding EditingWorkPlan.TestSteps, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource ModernTextBox}"
+                             Tag="Опишите шаги выполнения..."
+                             services:TextBoxBehavior.MonitorText="True"
+                             Height="120"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto"
+                             Margin="0,0,0,15"/>
+
+                    <!-- Плановые часы с Watermark -->
+                    <TextBlock Text="Плановые часы *" Style="{StaticResource SubtitleTextStyle}" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding EditingWorkPlan.EstimatedHours, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource ModernTextBox}"
+                             Tag="Введите количество часов"
+                             services:TextBoxBehavior.MonitorText="True"
+                             Margin="0,0,0,15"
+                             Height="40"/>
+                </StackPanel>
+            </ScrollViewer>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <Button Content="❌ Отмена"
+                        Command="{Binding CancelCommand}"
+                        Style="{StaticResource ModernButton}"
+                        Background="{StaticResource ErrorBrush}"
+                        Margin="0,0,10,0"
+                        Padding="20,10"/>
+                <Button Content="💾 Сохранить"
+                        Command="{Binding SaveCommand}"
+                        Style="{StaticResource ModernButton}"
+                        Background="{StaticResource SuccessBrush}"
+                        Padding="20,10"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

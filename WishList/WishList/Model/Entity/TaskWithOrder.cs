@@ -43,6 +43,8 @@ namespace WishList.Model.Entity
         public Employee Manager => Task?.Manager;
         public Employee Programmer => Task?.Programmer;
 
+        public string ProgressString => Task?.TaskProgress?.ProgressPercentage + "%" ?? "0%";
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

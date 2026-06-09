@@ -51,7 +51,7 @@ namespace WishList.Services
 
         private static void UpdatePasswordDisplay(TextBox textBox)
         {
-            // Здесь можно добавить логику для отображения символов пароля
+
         }
     }
 }

@@ -3,7 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
@@ -36,8 +36,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
         }
 
         public int OrderNumber { get; set; }
-
-        // Прокси-свойства для привязки - все только для чтения
         public int Id => Employee?.Id ?? 0;
         public string FirstName => Employee?.FirstName ?? string.Empty;
         public string LastName => Employee?.LastName ?? string.Empty;
@@ -63,8 +61,7 @@ namespace WishList.ViewModel.AdminViewModel.Dop
     public class StatusFilterItem
     {
         public string Name { get; set; }
-        public bool? IsActiveFilter { get; set; } // null = все, true = активные, false = неактивные
-
+        public bool? IsActiveFilter { get; set; }
         public override string ToString() => Name;
     }
 
@@ -74,7 +71,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
         private readonly EmployeesRepository _employeesRepository;
         private readonly EmployeeRolesRepository _rolesRepository;
 
-        // Константы для диапазона дат
         private readonly DateTime _minDate = DateTime.Today.AddYears(-1);
         private readonly DateTime _maxDate = DateTime.Today.AddYears(1);
         private const double TrackWidth = 400;
@@ -90,10 +86,8 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             Roles = new ObservableCollection<EmployeeRole>();
             StatusFilters = new ObservableCollection<StatusFilterItem>();
 
-            // Инициализация фильтров статуса
             InitializeStatusFilters();
 
-            // Инициализация свойств для слайдера
             FilterStartDate = DateTime.Today.AddDays(-30);
             FilterEndDate = DateTime.Today.AddDays(30);
             UpdateSliderProperties();
@@ -141,7 +135,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             {
                 _selectedEmployee = value;
                 OnPropertyChanged(nameof(SelectedEmployee));
-                // Обновляем доступность команд при изменении выбранного сотрудника
                 CommandManager.InvalidateRequerySuggested();
             }
         }
@@ -158,7 +151,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             }
         }
 
-        // ComboBox для фильтрации статуса
         private StatusFilterItem _selectedStatusFilter;
         public StatusFilterItem SelectedStatusFilter
         {
@@ -281,7 +273,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
         public ObservableCollection<EmployeeRole> Roles { get; }
         public ObservableCollection<StatusFilterItem> StatusFilters { get; }
 
-        // Свойства для диалога добавления/редактирования
         private bool _isDialogOpen;
         public bool IsDialogOpen
         {
@@ -318,7 +309,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             }
         }
 
-        // Свойства для пароля
         private string _password;
         public string Password
         {
@@ -341,8 +331,111 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             }
         }
 
-        // Коллекции для выпадающих списков в диалоге
         public ObservableCollection<EmployeeRole> AllRoles { get; } = new ObservableCollection<EmployeeRole>();
+
+        #endregion
+
+        #region Validation Methods
+
+        private bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            try
+            {
+                string pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+                return Regex.IsMatch(email, pattern);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool ValidateEmployee()
+        {
+            if (string.IsNullOrWhiteSpace(EditingEmployee.FirstName))
+            {
+                MessageBox.Show("Имя обязательно для заполнения", "Ошибка валидации",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(EditingEmployee.LastName))
+            {
+                MessageBox.Show("Фамилия обязательна для заполнения", "Ошибка валидации",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(EditingEmployee.Email))
+            {
+                MessageBox.Show("Email обязателен для заполнения", "Ошибка валидации",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (!IsValidEmail(EditingEmployee.Email))
+            {
+                MessageBox.Show("Введите корректный email адрес (например: user@example.com)", "Ошибка валидации",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (!IsEditMode)
+            {
+                if (string.IsNullOrWhiteSpace(Password))
+                {
+                    MessageBox.Show("Пароль обязателен для заполнения", "Ошибка валидации",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+
+                if (Password != ConfirmPassword)
+                {
+                    MessageBox.Show("Пароли не совпадают", "Ошибка валидации",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+
+                if (Password.Length < 6)
+                {
+                    MessageBox.Show("Пароль должен содержать минимум 6 символов", "Ошибка валидации",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+            }
+            else
+            {
+                // При редактировании проверяем пароль только если он был введен
+                if (!string.IsNullOrWhiteSpace(Password))
+                {
+                    if (Password != ConfirmPassword)
+                    {
+                        MessageBox.Show("Пароли не совпадают", "Ошибка валидации",
+                            MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return false;
+                    }
+
+                    if (Password.Length < 6)
+                    {
+                        MessageBox.Show("Пароль должен содержать минимум 6 символов", "Ошибка валидации",
+                            MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return false;
+                    }
+                }
+            }
+
+            if (EditingEmployee.RoleId == 0)
+            {
+                MessageBox.Show("Выберите роль сотрудника", "Ошибка валидации",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            return true;
+        }
 
         #endregion
 
@@ -396,8 +489,7 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             StatusFilters.Add(new StatusFilterItem { Name = "Только активные", IsActiveFilter = true });
             StatusFilters.Add(new StatusFilterItem { Name = "Только неактивные", IsActiveFilter = false });
 
-            // Устанавливаем значение по умолчанию
-            SelectedStatusFilter = StatusFilters[0]; // "Все сотрудники"
+            SelectedStatusFilter = StatusFilters[0];
         }
 
         #endregion
@@ -485,7 +577,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
 
                 Employees.Clear();
 
-                // Добавляем сотрудников с порядковыми номерами
                 int orderNumber = 1;
                 foreach (var employee in employees)
                 {
@@ -497,7 +588,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                 }
                 UpdateFilteredEmployees();
 
-                // Загружаем роли
                 LoadRoles();
 
                 StatusMessage = $"Загружено {Employees.Count} сотрудников";
@@ -525,7 +615,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                     IsActive = true,
                     RoleId = AllRoles.FirstOrDefault()?.Id ?? 1
                 };
-                // Сбрасываем пароли при открытии диалога
                 Password = string.Empty;
                 ConfirmPassword = string.Empty;
                 IsDialogOpen = true;
@@ -546,7 +635,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             try
             {
                 IsEditMode = true;
-                // Создаем копию сотрудника для редактирования
                 EditingEmployee = new Employee
                 {
                     Id = SelectedEmployee.Employee.Id,
@@ -557,7 +645,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                     IsActive = SelectedEmployee.Employee.IsActive,
                     CreatedDate = SelectedEmployee.Employee.CreatedDate
                 };
-                // Сбрасываем пароли при редактировании
                 Password = string.Empty;
                 ConfirmPassword = string.Empty;
                 IsDialogOpen = true;
@@ -576,9 +663,8 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             if (SelectedEmployee == null) return;
 
             var result = MessageBox.Show(
-                $"Вы уверены, что хотите УДАЛИТЬ сотрудника \"{SelectedEmployee.Employee.FirstName} {SelectedEmployee.Employee.LastName}\"?\n\n" +
-                "Сотрудник будет ПОЛНОСТЬЮ УДАЛЕН из базы данных. Это действие нельзя отменить!",
-                "Подтверждение УДАЛЕНИЯ",
+                $"Вы уверены, что хотите удалить сотрудника \"{SelectedEmployee.Employee.FirstName} {SelectedEmployee.Employee.LastName}\"?",
+                "Подтверждение удаления",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
@@ -586,75 +672,9 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             {
                 try
                 {
-                    // Проверяем, есть ли связанные задачи у сотрудника
-                    using (var context = new ApplicationContext())
-                    {
-                        var tasksRepository = new TasksRepository(context);
-                        var employeeId = SelectedEmployee.Employee.Id;
-
-                        // Ищем задачи где сотрудник является менеджером или программистом
-                        var relatedTasks = tasksRepository.Find(t => t.ManagerId == employeeId || t.ProgrammerId == employeeId)
-                            .Include(t => t.Status)
-                            .Include(t => t.Priority)
-                            .Include(t => t.Category)
-                            .Include(t => t.Client)
-                            .ToList();
-
-                        if (relatedTasks.Any())
-                        {
-                            var taskInfo = new StringBuilder();
-                            taskInfo.AppendLine($"Сотрудник \"{SelectedEmployee.Employee.FirstName} {SelectedEmployee.Employee.LastName}\" связан со следующими задачами:");
-                            taskInfo.AppendLine();
-
-                            foreach (var task in relatedTasks)
-                            {
-                                var role = task.ManagerId == employeeId ? "Менеджер" : "Программист";
-
-                                taskInfo.AppendLine($"═══════════════════════════════════════");
-                                taskInfo.AppendLine($"📋 Задача #{task.Id}: {task.Title}");
-                                taskInfo.AppendLine($"👤 Роль в задаче: {role}");
-                                taskInfo.AppendLine($"📝 Описание: {(task.Description.Length > 100 ? task.Description.Substring(0, 100) + "..." : task.Description)}");
-                                taskInfo.AppendLine($"🎯 Статус: {task.Status?.Name ?? "Не указан"}");
-                                taskInfo.AppendLine($"🚨 Приоритет: {task.Priority?.Name ?? "Не указан"}");
-                                taskInfo.AppendLine($"📁 Категория: {task.Category?.Name ?? "Не указан"}");
-                                taskInfo.AppendLine($"📅 Дата создания: {task.CreatedDate:dd.MM.yyyy}");
-
-                                if (task.DueDate.HasValue)
-                                {
-                                    var daysLeft = (task.DueDate.Value - DateTime.Now).Days;
-                                    var deadlineInfo = daysLeft < 0 ? $"❌ Просрочено на {-daysLeft} дн." :
-                                                      daysLeft == 0 ? "⚠️ Сегодня" :
-                                                      $"⏳ Осталось {daysLeft} дн.";
-                                    taskInfo.AppendLine($"⏰ Срок выполнения: {task.DueDate.Value:dd.MM.yyyy} ({deadlineInfo})");
-                                }
-
-                                if (task.CompletedDate.HasValue)
-                                    taskInfo.AppendLine($"✅ Дата завершения: {task.CompletedDate.Value:dd.MM.yyyy}");
-
-                                if (task.EstimatedHours.HasValue)
-                                    taskInfo.AppendLine($"⏱️ Плановые часы: {task.EstimatedHours} ч.");
-
-                                if (task.ActualHours.HasValue)
-                                    taskInfo.AppendLine($"⏱️ Фактические часы: {task.ActualHours} ч.");
-
-                                taskInfo.AppendLine();
-                            }
-
-                            taskInfo.AppendLine("💡 РЕШЕНИЕ: Сначала перепривяжите эти задачи другому сотруднику или завершите их.");
-
-                            MessageBox.Show(taskInfo.ToString(),
-                                "Ошибка удаления - связанные задачи",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Error);
-                            return;
-                        }
-                    }
-
-                    // УДАЛЯЕМ сотрудника из базы данных
                     _employeesRepository.Delete(SelectedEmployee.Employee.Id);
                     _employeesRepository.Save();
 
-                    // Удаляем сотрудника из коллекции
                     var employeeToRemove = Employees.FirstOrDefault(e => e.Employee.Id == SelectedEmployee.Employee.Id);
                     if (employeeToRemove != null)
                     {
@@ -664,12 +684,7 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                     UpdateFilteredEmployees();
                     SelectedEmployee = null;
 
-                    StatusMessage = "Сотрудник успешно УДАЛЕН из базы данных";
-                }
-                catch (DbUpdateException dbEx)
-                {
-                    // Обработка ошибок целостности данных (внешние ключи)
-                    HandleDeleteError(dbEx);
+                    StatusMessage = "Сотрудник успешно удален";
                 }
                 catch (Exception ex)
                 {
@@ -677,112 +692,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                     MessageBox.Show($"Ошибка удаления сотрудника: {ex.Message}", "Ошибка",
                         MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-            }
-        }
-
-        // Дополнительный метод для обработки ошибок удаления
-        private void HandleDeleteError(DbUpdateException dbEx)
-        {
-            try
-            {
-                using (var context = new ApplicationContext())
-                {
-                    var tasksRepository = new TasksRepository(context);
-                    var employeeId = SelectedEmployee.Employee.Id;
-
-                    // Ищем задачи где сотрудник является менеджером или программистом
-                    var relatedTasks = tasksRepository.Find(t => t.ManagerId == employeeId || t.ProgrammerId == employeeId)
-                        .Include(t => t.Status)
-                        .Include(t => t.Priority)
-                        .Include(t => t.Category)
-                        .Include(t => t.Client)
-                        .ToList();
-
-                    if (relatedTasks.Any())
-                    {
-                        var taskInfo = new StringBuilder();
-                        taskInfo.AppendLine($"Не удалось удалить сотрудника \"{SelectedEmployee.Employee.FirstName} {SelectedEmployee.Employee.LastName}\"!");
-                        taskInfo.AppendLine();
-                        taskInfo.AppendLine("Сотрудник связан со следующими задачами:");
-                        taskInfo.AppendLine();
-
-                        int managerTasks = relatedTasks.Count(t => t.ManagerId == employeeId);
-                        int programmerTasks = relatedTasks.Count(t => t.ProgrammerId == employeeId);
-
-                        taskInfo.AppendLine($"📊 Статистика связей:");
-                        taskInfo.AppendLine($"   • Как менеджер: {managerTasks} задач");
-                        taskInfo.AppendLine($"   • Как программист: {programmerTasks} задач");
-                        taskInfo.AppendLine();
-
-                        foreach (var task in relatedTasks.Take(10)) 
-                        {
-                            var role = task.ManagerId == employeeId ? "👔 Менеджер" : "💻 Программист";
-
-                            taskInfo.AppendLine($"═══════════════════════════════════════");
-                            taskInfo.AppendLine($"📋 Задача #{task.Id}: {task.Title}");
-                            taskInfo.AppendLine($"👤 Роль: {role}");
-                            taskInfo.AppendLine($"📝 Описание: {task.Description ?? "Нет описания"}");
-                            taskInfo.AppendLine($"🎯 Статус: {task.Status?.Name ?? "Не указан"}");
-                            taskInfo.AppendLine($"🚨 Приоритет: {task.Priority?.Name ?? "Не указан"}");
-                            taskInfo.AppendLine($"📁 Категория: {task.Category?.Name ?? "Не указан"}");
-                            taskInfo.AppendLine($"📅 Дата создания: {task.CreatedDate:dd.MM.yyyy HH:mm}");
-
-                            if (task.DueDate.HasValue)
-                            {
-                                var daysLeft = (task.DueDate.Value - DateTime.Now).Days;
-                                var deadlineInfo = daysLeft < 0 ? $"❌ Просрочено на {-daysLeft} дн." :
-                                                  daysLeft == 0 ? "⚠️ Сегодня" :
-                                                  $"⏳ Осталось {daysLeft} дн.";
-                                taskInfo.AppendLine($"⏰ Срок выполнения: {task.DueDate.Value:dd.MM.yyyy} ({deadlineInfo})");
-                            }
-
-                            if (task.CompletedDate.HasValue)
-                                taskInfo.AppendLine($"✅ Дата завершения: {task.CompletedDate.Value:dd.MM.yyyy}");
-
-                            if (task.EstimatedHours.HasValue)
-                                taskInfo.AppendLine($"⏱️ Плановые часы: {task.EstimatedHours} ч.");
-
-                            if (task.ActualHours.HasValue)
-                                taskInfo.AppendLine($"⏱️ Фактические часы: {task.ActualHours} ч.");
-
-                            if (task.Client != null)
-                                taskInfo.AppendLine($"👥 Клиент: {task.Client.Name}");
-
-                            taskInfo.AppendLine();
-                        }
-
-                        if (relatedTasks.Count > 10)
-                        {
-                            taskInfo.AppendLine($"... и еще {relatedTasks.Count - 10} задач");
-                            taskInfo.AppendLine();
-                        }
-
-                        taskInfo.AppendLine("💡 РЕКОМЕНДАЦИИ:");
-                        taskInfo.AppendLine("   1. Назначьте другого менеджера/программиста на эти задачи");
-                        taskInfo.AppendLine("   2. Завершите или отмените задачи");
-                        taskInfo.AppendLine("   3. Используйте функцию 'Перепривязка задач' в модуле задач");
-
-                        MessageBox.Show(taskInfo.ToString(),
-                            "Ошибка удаления - связанные задачи",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Error);
-
-                        StatusMessage = "Удаление невозможно - сотрудник связан с задачами";
-                    }
-                    else
-                    {
-                        // Другая ошибка базы данных
-                        StatusMessage = $"Ошибка базы данных при удалении: {dbEx.Message}";
-                        MessageBox.Show($"Ошибка базы данных при удалении: {dbEx.Message}\n\nВнутренняя ошибка: {dbEx.InnerException?.Message}", "Ошибка",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                StatusMessage = $"Ошибка при проверке связанных задач: {ex.Message}";
-                MessageBox.Show($"Ошибка при проверке связанных задач: {ex.Message}", "Ошибка",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -796,7 +705,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                 _employeesRepository.Update(SelectedEmployee.Employee);
                 _employeesRepository.Save();
 
-                // Обновляем отображение
                 SelectedEmployee.RefreshProperties();
                 EmployeesView?.Refresh();
 
@@ -820,7 +728,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                 _employeesRepository.Update(SelectedEmployee.Employee);
                 _employeesRepository.Save();
 
-                // Обновляем отображение
                 SelectedEmployee.RefreshProperties();
                 EmployeesView?.Refresh();
 
@@ -840,56 +747,11 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             {
                 if (EditingEmployee == null) return;
 
-                // Валидация
-                if (string.IsNullOrWhiteSpace(EditingEmployee.FirstName))
-                {
-                    MessageBox.Show("Имя обязательно для заполнения", "Ошибка",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                if (!ValidateEmployee())
                     return;
-                }
-
-                if (string.IsNullOrWhiteSpace(EditingEmployee.LastName))
-                {
-                    MessageBox.Show("Фамилия обязательна для заполнения", "Ошибка",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(EditingEmployee.Email))
-                {
-                    MessageBox.Show("Email обязателен для заполнения", "Ошибка",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                // Валидация пароля только для новых сотрудников
-                if (!IsEditMode)
-                {
-                    if (string.IsNullOrWhiteSpace(Password))
-                    {
-                        MessageBox.Show("Пароль обязателен для заполнения", "Ошибка",
-                            MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
-                    }
-
-                    if (Password != ConfirmPassword)
-                    {
-                        MessageBox.Show("Пароли не совпадают", "Ошибка",
-                            MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
-                    }
-
-                    if (Password.Length < 6)
-                    {
-                        MessageBox.Show("Пароль должен содержать минимум 6 символов", "Ошибка",
-                            MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
-                    }
-                }
 
                 if (IsEditMode)
                 {
-                    // Обновление существующего сотрудника
                     var existingEmployee = _employeesRepository.GetById(EditingEmployee.Id);
                     if (existingEmployee != null)
                     {
@@ -899,10 +761,9 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                         existingEmployee.RoleId = EditingEmployee.RoleId;
                         existingEmployee.IsActive = EditingEmployee.IsActive;
 
-                        // Обновляем пароль только если он был введен (без хеширования)
                         if (!string.IsNullOrWhiteSpace(Password))
                         {
-                            existingEmployee.PasswordHash = Password; // Сохраняем пароль как есть
+                            existingEmployee.PasswordHash = Password;
                         }
 
                         _employeesRepository.Update(existingEmployee);
@@ -911,9 +772,7 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                 }
                 else
                 {
-                    // Создание нового сотрудника
                     EditingEmployee.CreatedDate = DateTime.Now;
-                    // Сохраняем пароль без хеширования
                     EditingEmployee.PasswordHash = Password;
 
                     _employeesRepository.Create(EditingEmployee);
@@ -944,7 +803,7 @@ namespace WishList.ViewModel.AdminViewModel.Dop
         private void ExecuteClearFilters(object parameter)
         {
             SearchText = string.Empty;
-            SelectedStatusFilter = StatusFilters[0]; // "Все сотрудники"
+            SelectedStatusFilter = StatusFilters[0];
             SelectedRole = null;
             FilterStartDate = DateTime.Today.AddDays(-30);
             FilterEndDate = DateTime.Today.AddDays(30);
@@ -997,7 +856,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
         {
             FilteredEmployees.Clear();
 
-            // Обновляем порядковые номера для отфильтрованных сотрудников
             int orderNumber = 1;
             foreach (var employeeWithOrder in Employees.Where(e => FilterEmployees(e)))
             {
@@ -1012,7 +870,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             if (obj is not EmployeeWithOrder employeeWithOrder) return false;
             var employee = employeeWithOrder.Employee;
 
-            // Фильтр по поисковому тексту
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
                 var searchLower = SearchText.ToLower();
@@ -1024,18 +881,15 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                 if (!matches) return false;
             }
 
-            // Фильтр по статусу (ComboBox)
             if (SelectedStatusFilter?.IsActiveFilter.HasValue == true)
             {
                 if (employee.IsActive != SelectedStatusFilter.IsActiveFilter.Value)
                     return false;
             }
 
-            // Фильтр по роли
             if (SelectedRole != null && employee.RoleId != SelectedRole.Id)
                 return false;
 
-            // Фильтр по диапазону дат
             if (FilterStartDate.HasValue && employee.CreatedDate.Date < FilterStartDate.Value.Date)
                 return false;
 

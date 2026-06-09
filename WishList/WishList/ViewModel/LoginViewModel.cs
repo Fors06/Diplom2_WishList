@@ -115,8 +115,11 @@ namespace WishList.ViewModel
 
                 using (var dbContext = new ApplicationContext())
                 {
-                    Employee user = await dbContext.Employees
-                        .FirstOrDefaultAsync(u => u.Email == Username && u.PasswordHash == Password);
+                    var users = await dbContext.Employees.ToListAsync();
+
+                    var user = users.FirstOrDefault(u =>
+                        string.Equals(u.Email, Username, StringComparison.InvariantCulture) &&
+                        string.Equals(u.PasswordHash, _realPassword, StringComparison.InvariantCulture));
 
                     if (user != null)
                     {
@@ -158,11 +161,14 @@ namespace WishList.ViewModel
 
                     switch (roleName)
                     {
-                        case "Admin":
+                        case "Админ":
                             OpenAdminWindow(obj);
                             break;
-                        case "Manager":
+                        case "Менеджер":
                             OpenManagerWindow(obj);
+                            break;
+                        case "Программист":
+                            OpenProgrammerWindow(obj);
                             break;
                         default:
                             ErrorMessage = "Недостаточно прав для доступа.";
@@ -191,6 +197,15 @@ namespace WishList.ViewModel
             var managerWindow = new Views.ManagerView.ManagerWindow();
             Application.Current.MainWindow = managerWindow;
             managerWindow.Show();
+            currentWindow?.Close();
+        }
+
+        private void OpenProgrammerWindow(object obj)
+        {
+            var currentWindow = Application.Current.MainWindow as Window ?? Window.GetWindow(obj as DependencyObject);
+            var programmerWindow = new Views.ProgrammerView.ProgrammerWindow();
+            Application.Current.MainWindow = programmerWindow;
+            programmerWindow.Show();
             currentWindow?.Close();
         }
 

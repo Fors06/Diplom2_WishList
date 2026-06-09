@@ -137,8 +137,12 @@
         <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="12,10"/>
-        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Padding" Value="10,5"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Height" Value="35"/>
+        <Setter Property="MinHeight" Value="35"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="CaretBrush" Value="{StaticResource AccentBrush}"/>
         <Setter Property="SelectionBrush" Value="{StaticResource AccentBrush}"/>
         <Setter Property="SelectionOpacity" Value="0.3"/>
@@ -147,25 +151,23 @@
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
                     <Border Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="6"
-                        SnapsToDevicePixels="True">
+                 BorderBrush="{TemplateBinding BorderBrush}"
+                 BorderThickness="{TemplateBinding BorderThickness}"
+                 CornerRadius="6"
+                 SnapsToDevicePixels="True">
                         <Grid>
-                            <!-- Основной контент -->
                             <ScrollViewer x:Name="PART_ContentHost"
-                                      Padding="{TemplateBinding Padding}"
-                                      Background="Transparent"
-                                      VerticalAlignment="Center"/>
-
-                            <!-- Водяной знак -->
+                               Padding="{TemplateBinding Padding}"
+                               Background="Transparent"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Stretch"/>
                             <TextBlock x:Name="WatermarkText"
-                                   Text="{TemplateBinding Tag}"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
-                                   Padding="{TemplateBinding Padding}"
-                                   VerticalAlignment="Center"
-                                   IsHitTestVisible="False"
-                                   FontSize="{TemplateBinding FontSize}"/>
+                            Text="{TemplateBinding Tag}"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            Padding="{TemplateBinding Padding}"
+                            VerticalAlignment="Center"
+                            IsHitTestVisible="False"
+                            FontSize="{TemplateBinding FontSize}"/>
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -180,7 +182,7 @@
                             <Setter Property="BorderThickness" Value="2"/>
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -260,8 +262,7 @@
         </Setter>
     </Style>
 
-    <!-- Стиль для DatePicker (ИСПРАВЛЕННЫЙ) -->
-    <!-- Надежный стиль, не затрагивающий функциональность -->
+    <!-- Стиль для DatePicker -->
     <Style x:Key="ModernDatePicker" TargetType="DatePicker">
         <Setter Property="Background" Value="{StaticResource CardBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
@@ -451,10 +452,12 @@
         <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="12,10"/>
-        <Setter Property="FontSize" Value="14"/>
-        <Setter Property="Height" Value="45"/>
+        <Setter Property="Padding" Value="8,5"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Height" Value="35"/>
+        <Setter Property="MinHeight" Value="35"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">

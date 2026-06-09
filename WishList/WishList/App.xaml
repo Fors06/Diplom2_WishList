@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:WishList"
              xmlns:convertes="clr-namespace:WishList.Data.Convertes"
-             StartupUri="Views\MainWindow.xaml">
+             StartupUri="Views\AdminView\AdminWindow.xaml">
     <Application.Resources>
         <!-- Подключаем светлую тему по умолчанию -->
         <ResourceDictionary>

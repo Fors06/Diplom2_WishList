@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
@@ -32,8 +33,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
         }
 
         public int OrderNumber { get; set; }
-
-        // Прокси-свойства для привязки
         public int Id => Client?.Id ?? 0;
         public string CompanyName => Client?.CompanyName ?? string.Empty;
         public string ContactPerson => Client?.ContactPerson ?? string.Empty;
@@ -54,7 +53,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
         private readonly ApplicationContext _context;
         private readonly ClientsRepository _clientsRepository;
 
-        // Константы для диапазона дат
         private readonly DateTime _minDate = DateTime.Today.AddYears(-1);
         private readonly DateTime _maxDate = DateTime.Today.AddYears(1);
         private const double TrackWidth = 400;
@@ -67,7 +65,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             Clients = new ObservableCollection<ClientWithOrder>();
             FilteredClients = new ObservableCollection<ClientWithOrder>();
 
-            // Инициализация свойств для слайдера
             FilterStartDate = DateTime.Today.AddDays(-30);
             FilterEndDate = DateTime.Today.AddDays(30);
             UpdateSliderProperties();
@@ -225,7 +222,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             }
         }
 
-        // Свойства для диалога добавления/редактирования
         private bool _isDialogOpen;
         public bool IsDialogOpen
         {
@@ -299,6 +295,72 @@ namespace WishList.ViewModel.AdminViewModel.Dop
 
         private bool CanExecuteLoadClients(object parameter) => !IsLoading;
         private bool CanExecuteEditDelete(object parameter) => SelectedClient != null;
+
+        #endregion
+
+        #region Validation Methods
+
+        private bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            try
+            {
+                // Регулярное выражение для проверки email
+                string pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+                return Regex.IsMatch(email, pattern);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool IsValidPhone(string phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone))
+                return true; // Телефон может быть пустым
+
+            // Поддерживаем форматы:
+            // +7XXXXXXXXXX, 8XXXXXXXXXX, 7XXXXXXXXXX, XXXXXXXXXX
+            // С пробелами, дефисами и скобками
+            string pattern = @"^(\+7|8|7)?[\s\-]?\(?[0-9]{3}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$";
+            return Regex.IsMatch(phone, pattern);
+        }
+
+        private bool ValidateClient()
+        {
+            if (string.IsNullOrWhiteSpace(EditingClient.CompanyName))
+            {
+                MessageBox.Show("Название компании обязательно для заполнения", "Ошибка валидации",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(EditingClient.Email))
+            {
+                MessageBox.Show("Email обязателен для заполнения", "Ошибка валидации",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (!IsValidEmail(EditingClient.Email))
+            {
+                MessageBox.Show("Введите корректный email адрес (например: user@example.com)", "Ошибка валидации",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(EditingClient.Phone) && !IsValidPhone(EditingClient.Phone))
+            {
+                MessageBox.Show("Введите корректный номер телефона\n\nПоддерживаемые форматы:\n• +7 (123) 456-78-90\n• 8 (123) 456-78-90\n• 71234567890\n• 1234567890",
+                    "Ошибка валидации", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            return true;
+        }
 
         #endregion
 
@@ -384,7 +446,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
 
                 Clients.Clear();
 
-                // Добавляем клиентов с порядковыми номерами
                 int orderNumber = 1;
                 foreach (var client in clients)
                 {
@@ -437,7 +498,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             try
             {
                 IsEditMode = true;
-                // Создаем копию клиента для редактирования
                 EditingClient = new Client
                 {
                     Id = SelectedClient.Client.Id,
@@ -494,24 +554,12 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             {
                 if (EditingClient == null) return;
 
-                // Валидация
-                if (string.IsNullOrWhiteSpace(EditingClient.CompanyName))
-                {
-                    MessageBox.Show("Название компании обязательно для заполнения", "Ошибка",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                // Валидация данных
+                if (!ValidateClient())
                     return;
-                }
-
-                if (string.IsNullOrWhiteSpace(EditingClient.Email))
-                {
-                    MessageBox.Show("Email обязателен для заполнения", "Ошибка",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
 
                 if (IsEditMode)
                 {
-                    // Обновление существующего клиента
                     var existingClient = _clientsRepository.GetById(EditingClient.Id);
                     if (existingClient != null)
                     {
@@ -527,7 +575,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                 }
                 else
                 {
-                    // Создание нового клиента
                     EditingClient.CreatedDate = DateTime.Now;
                     _clientsRepository.Create(EditingClient);
                     StatusMessage = $"Новый клиент \"{EditingClient.CompanyName}\" создан";
@@ -565,7 +612,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             try
             {
                 var exportCount = FilteredClients.Count;
-
                 StatusMessage = $"Экспортировано {exportCount} клиентов";
                 MessageBox.Show($"Готово к экспорту {exportCount} клиентов", "Экспорт",
                     MessageBoxButton.OK, MessageBoxImage.Information);
@@ -612,7 +658,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
         {
             FilteredClients.Clear();
 
-            // Обновляем порядковые номера для отфильтрованных клиентов
             int orderNumber = 1;
             foreach (var clientWithOrder in Clients.Where(c => FilterClients(c)))
             {
@@ -627,7 +672,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             if (obj is not ClientWithOrder clientWithOrder) return false;
             var client = clientWithOrder.Client;
 
-            // Фильтр по поисковому тексту
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
                 var searchLower = SearchText.ToLower();
@@ -640,7 +684,6 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                 if (!matches) return false;
             }
 
-            // Фильтр по диапазону дат
             if (FilterStartDate.HasValue && client.CreatedDate.Date < FilterStartDate.Value.Date)
                 return false;
 

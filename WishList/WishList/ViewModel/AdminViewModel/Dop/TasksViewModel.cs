@@ -1,16 +1,20 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Win32;
+using OfficeOpenXml;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
-using Microsoft.EntityFrameworkCore;
 using WishList.Model.Entity;
 using WishList.Model.Repository;
 using WishList.ViewModel;
 using TaskEntity = WishList.Model.Entity.Task;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace WishList.ViewModel.AdminViewModel.Dop
 {
@@ -57,6 +61,8 @@ namespace WishList.ViewModel.AdminViewModel.Dop
 
         public TasksViewModel()
         {
+            ExcelPackage.License.SetNonCommercialPersonal("WishList Application");
+
             _context = new ApplicationContext();
             _tasksRepository = new TasksRepository(_context);
             _clientsRepository = new ClientsRepository(_context);
@@ -70,7 +76,7 @@ namespace WishList.ViewModel.AdminViewModel.Dop
 
             Tasks = new ObservableCollection<TaskWithOrder>();
             FilteredTasks = new ObservableCollection<TaskWithOrder>();
-            WorkPlansForDialog = new ObservableCollection<WorkPlan>();
+            WorkPlansForDialog = new ObservableCollection<WorkPlanWithOrder>();
 
             SelectableStatuses = new ObservableCollection<SelectableItem<TaskStatuss>>();
             SelectablePriorities = new ObservableCollection<SelectableItem<TaskPriority>>();
@@ -128,8 +134,8 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             }
         }
 
-        private ObservableCollection<WorkPlan> _workPlansForDialog;
-        public ObservableCollection<WorkPlan> WorkPlansForDialog 
+        private ObservableCollection<WorkPlanWithOrder> _workPlansForDialog;
+        public ObservableCollection<WorkPlanWithOrder> WorkPlansForDialog 
         {
             get => _workPlansForDialog; 
             set 
@@ -139,8 +145,8 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             }
         }
 
-        private WorkPlan _selectedWorkPlan;
-        public WorkPlan SelectedWorkPlan 
+        private WorkPlanWithOrder _selectedWorkPlan;
+        public WorkPlanWithOrder SelectedWorkPlan 
         {
             get => _selectedWorkPlan; 
             set 
@@ -436,6 +442,7 @@ namespace WishList.ViewModel.AdminViewModel.Dop
         public ICommand SaveWorkPlanInDialogCommand { get; private set; }
         public ICommand CancelWorkPlanInDialogCommand { get; private set; }
 
+
         private void InitializeCommands()
         {
             LoadTasksCommand = new RelayCommand(ExecuteLoadTasks, _ => !IsLoading);
@@ -459,6 +466,95 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             SaveWorkPlanInDialogCommand = new RelayCommand(SaveWorkPlanInDialog);
             CancelWorkPlanInDialogCommand = new RelayCommand(_ => { IsWorkPlanFormVisible = false; CurrentWorkPlan = null; });
         }
+        #endregion
+
+        #region Export to Excel
+
+        private void ExecuteExportTasks(object parameter)
+        {
+            try
+            {
+                if (FilteredTasks == null || FilteredTasks.Count == 0)
+                {
+                    MessageBox.Show("Нет данных для экспорта", "Информация",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                var saveDialog = new SaveFileDialog();
+                saveDialog.Filter = "Excel files (*.xlsx)|*.xlsx";
+                saveDialog.DefaultExt = "xlsx";
+                saveDialog.FileName = $"Задачи_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                saveDialog.Title = "Сохранить отчёт";
+
+                if (saveDialog.ShowDialog() == true)
+                {
+                    using (var package = new ExcelPackage())
+                    {
+                        var worksheet = package.Workbook.Worksheets.Add("Задачи");
+
+                        string[] headers = {
+                            "№", "Название", "Описание", "Клиент", "Контактное лицо",
+                            "Телефон клиента", "Email клиента", "Категория", "Приоритет", "Статус",
+                            "Менеджер", "Программист", "Дата создания", "Срок выполнения",
+                            "Дата завершения", "Плановые часы", "Фактические часы"
+                        };
+
+                        using (var range = worksheet.Cells[1, 1, 1, headers.Length])
+                        {
+                            range.Style.Font.Bold = true;
+                            range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                            range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                            range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                        }
+
+                        for (int i = 0; i < headers.Length; i++)
+                        {
+                            worksheet.Cells[1, i + 1].Value = headers[i];
+                        }
+
+                        int row = 2;
+                        int number = 1;
+                        foreach (var task in FilteredTasks)
+                        {
+                            worksheet.Cells[row, 1].Value = number++;
+                            worksheet.Cells[row, 2].Value = task.Title ?? "";
+                            worksheet.Cells[row, 3].Value = task.Description ?? "";
+                            worksheet.Cells[row, 4].Value = task.Client?.CompanyName ?? "";
+                            worksheet.Cells[row, 5].Value = task.Client?.ContactPerson ?? "";
+                            worksheet.Cells[row, 6].Value = task.Client?.Phone ?? "";
+                            worksheet.Cells[row, 7].Value = task.Client?.Email ?? "";
+                            worksheet.Cells[row, 8].Value = task.Category?.Name ?? "";
+                            worksheet.Cells[row, 9].Value = task.Priority?.Name ?? "";
+                            worksheet.Cells[row, 10].Value = task.Status?.Name ?? "";
+                            worksheet.Cells[row, 11].Value = task.Manager?.Name ?? "";
+                            worksheet.Cells[row, 12].Value = task.Programmer?.Name ?? "";
+                            worksheet.Cells[row, 13].Value = task.CreatedDate.ToString("dd.MM.yyyy HH:mm");
+                            worksheet.Cells[row, 14].Value = task.DueDate?.ToString("dd.MM.yyyy") ?? "";
+                            worksheet.Cells[row, 15].Value = task.Task?.CompletedDate?.ToString("dd.MM.yyyy") ?? "";
+                            worksheet.Cells[row, 16].Value = task.Task?.EstimatedHours ?? 0;
+                            worksheet.Cells[row, 17].Value = task.Task?.ActualHours ?? 0;
+
+                            row++;
+                        }
+
+                        worksheet.Cells[1, 1, row - 1, headers.Length].AutoFitColumns();
+                        package.SaveAs(new FileInfo(saveDialog.FileName));
+                    }
+
+                    MessageBox.Show($"Экспорт завершён. Сохранено {FilteredTasks.Count} записей.\n\nФайл сохранён: {saveDialog.FileName}",
+                        "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    StatusMessage = $"Экспортировано {FilteredTasks.Count} задач";
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Ошибка экспорта: {ex.Message}";
+                MessageBox.Show($"Ошибка при экспорте: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         #endregion
 
         #region Slider Methods
@@ -647,7 +743,7 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             StatusMessage = "Фильтры очищены";
         }
 
-        private void ExecuteExportTasks(object parameter) { MessageBox.Show($"Экспорт {FilteredTasks.Count} задач", "Экспорт", MessageBoxButton.OK, MessageBoxImage.Information); }
+       
 
         private void ExecuteShowWorkPlan(object parameter)
         {
@@ -737,10 +833,18 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             {
                 WorkPlansForDialog.Clear();
                 var links = _taskWorkPlansRepository.Find(twp => twp.TaskId == SelectedTask.Id).ToList();
+                int orderNumber = 1;
                 foreach (var link in links)
                 {
                     var plan = _workPlansRepository.GetById(link.WorkPlanId);
-                    if (plan != null) WorkPlansForDialog.Add(plan);
+                    if (plan != null)
+                    {
+                        WorkPlansForDialog.Add(new WorkPlanWithOrder
+                        {
+                            WorkPlan = plan,
+                            OrderNumber = orderNumber++
+                        });
+                    }
                 }
                 StatusMessage = WorkPlansForDialog.Any() ? $"Загружено {WorkPlansForDialog.Count} планов" : "Нет планов";
             }
@@ -766,8 +870,8 @@ namespace WishList.ViewModel.AdminViewModel.Dop
             }
             LoadItems(_statusesRepository.GetAll(), SelectableStatuses, AllStatuses);
             LoadItems(_prioritiesRepository.GetAll(), SelectablePriorities, AllPriorities);
-            LoadItems(_employeesRepository.GetAll().Where(e => e.IsActive && e.Role.Name == "Manager"), SelectableManagers, AllManagers);
-            LoadItems(_employeesRepository.GetAll().Where(e => e.IsActive && e.Role.Name == "Programmer"), SelectableProgrammers, AllProgrammers);
+            LoadItems(_employeesRepository.GetAll().Where(e => e.IsActive && e.Role.Name == "Менеджер"), SelectableManagers, AllManagers);
+            LoadItems(_employeesRepository.GetAll().Where(e => e.IsActive && e.Role.Name == "Программист"), SelectableProgrammers, AllProgrammers);
             LoadItems(_clientsRepository.GetAll(), SelectableClients, AllClients);
             LoadItems(_categoriesRepository.GetAll(), SelectableCategories, AllCategories);
             UpdateDisplayText();

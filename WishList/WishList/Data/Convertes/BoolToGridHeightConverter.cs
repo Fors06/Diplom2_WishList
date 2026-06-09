@@ -1,6 +1,4 @@
-﻿// Добавьте в папку WishList.Data.Convertes:
-
-using System;
+﻿using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
@@ -13,10 +11,8 @@ namespace WishList.Data.Convertes
         {
             if (value is bool isFormVisible && isFormVisible)
             {
-                // Когда форма видна - таблица занимает фиксированную высоту (половина)
                 return new GridLength(250, GridUnitType.Star);
             }
-            // Когда форма скрыта - таблица растянута на всё доступное пространство
             return new GridLength(1, GridUnitType.Star);
         }
 

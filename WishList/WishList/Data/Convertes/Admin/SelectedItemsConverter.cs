@@ -18,7 +18,6 @@ namespace WishList.Data.Convertes.Admin
 
                 foreach (var item in items)
                 {
-                    // Используем рефлексию для получения свойств
                     var isSelectedProp = item.GetType().GetProperty("IsSelected");
                     var itemProp = item.GetType().GetProperty("Item");
 
@@ -27,7 +26,6 @@ namespace WishList.Data.Convertes.Admin
                         var itemObject = itemProp?.GetValue(item);
                         if (itemObject != null)
                         {
-                            // Пытаемся получить Name, FullName или CompanyName
                             var nameProp = itemObject.GetType().GetProperty("Name")
                                         ?? itemObject.GetType().GetProperty("CompanyName");
 

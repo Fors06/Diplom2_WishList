@@ -5,10 +5,11 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
+using WishList.Data.SwitchTheme;
 using WishList.Model.Repository;
 using WishList.ViewModel;
 using WishList.ViewModel.AdminViewModel.Dop;
-using WishList.Data.SwitchTheme;
+using WishList.Views;
 
 namespace WishList.ViewModel.AdminViewModel
 {
@@ -35,6 +36,22 @@ namespace WishList.ViewModel.AdminViewModel
             _refreshTimer.Interval = TimeSpan.FromMinutes(5);
             _refreshTimer.Tick += (s, e) => RefreshData();
             _refreshTimer.Start();
+        }
+
+        private void ExecuteLogout()
+        {
+            var result = MessageBox.Show("Вы уверены, что хотите выйти из системы?", "Выход",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                var currentWindow = Application.Current.MainWindow as Window;
+                var mainWindow = new MainWindow();
+                Application.Current.MainWindow = mainWindow;
+                mainWindow.Show();
+                currentWindow?.Close();
+
+            }
         }
 
         #region Child ViewModels
@@ -110,6 +127,7 @@ namespace WishList.ViewModel.AdminViewModel
         public ICommand SwitchTabCommand { get; private set; }
         public ICommand RefreshCommand { get; private set; }
         public ICommand ToggleThemeCommand { get; private set; }
+        public ICommand LogoutCommand { get; private set; }
 
         private void InitializeCommands()
         {
@@ -117,6 +135,7 @@ namespace WishList.ViewModel.AdminViewModel
             SwitchTabCommand = new RelayCommand(SwitchTab);
             RefreshCommand = new RelayCommand(_ => RefreshData());
             ToggleThemeCommand = new RelayCommand(ExecuteToggleTheme);
+            LogoutCommand = new RelayCommand(_ => ExecuteLogout());
         }
 
         #endregion
