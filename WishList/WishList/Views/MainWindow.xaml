@@ -65,7 +65,7 @@
             </ContentControl>
 
             <!-- Футер -->
-            <Border Grid.Row="2" Background="{StaticResource SecondaryBrush}" CornerRadius="0,0,15,15">
+            <!--<Border Grid.Row="2" Background="{StaticResource SecondaryBrush}" CornerRadius="0,0,15,15">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
                     <TextBlock Text="{Binding FooterText}"
                               Foreground="{StaticResource TextSecondaryBrush}"
@@ -81,7 +81,7 @@
                         </TextBlock.InputBindings>
                     </TextBlock>
                 </StackPanel>
-            </Border>
+            </Border>-->
         </Grid>
     </Border>
 </Window>

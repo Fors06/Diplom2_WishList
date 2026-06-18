@@ -631,7 +631,11 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                 LoadSupportingData();
                 StatusMessage = $"Загружено {Tasks.Count} задач";
             }
-            catch (Exception ex) { StatusMessage = $"Ошибка: {ex.Message}"; MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error); }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Ошибка: {ex.Message}";
+                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
             finally { IsLoading = false; }
         }
 
@@ -722,7 +726,11 @@ namespace WishList.ViewModel.AdminViewModel.Dop
                 IsDialogOpen = false;
                 ExecuteLoadTasks(null);
             }
-            catch (Exception ex) { StatusMessage = $"Ошибка: {ex.Message}"; MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error); }
+            catch (Exception ex) 
+            {
+                StatusMessage = $"Ошибка: {ex.Message}";
+                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error); 
+            }
         }
 
         private void ExecuteCancelEdit(object parameter) { IsDialogOpen = false; EditingTask = null; }
